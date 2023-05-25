@@ -1,4 +1,4 @@
-module github.com/gardener/machine-controller-manager
+module github.com/xuanson2406/machine-controller-manager
 
 go 1.19
 
@@ -27,7 +27,10 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require github.com/xuanson2406/go-vcloud-director-fptcloud/v2 v2.1.5
+require (
+	github.com/gardener/machine-controller-manager v0.49.1
+	github.com/xuanson2406/go-vcloud-director-fptcloud/v2 v2.1.5
+)
 
 require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
