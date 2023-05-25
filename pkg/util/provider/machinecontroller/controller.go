@@ -115,6 +115,7 @@ func NewController(
 		volumeAttachmentHandler:       nil,
 		permitGiver:                   permits.NewPermitGiver(permitGiverStaleEntryTimeout, janitorFreq),
 		targetKubernetesVersion:       targetKubernetesVersion,
+		rebooted:                      false,
 	}
 
 	controller.internalExternalScheme = runtime.NewScheme()
@@ -284,6 +285,7 @@ type controller struct {
 	nodeSynced              cache.InformerSynced
 	machineClassSynced      cache.InformerSynced
 	machineSynced           cache.InformerSynced
+	rebooted                bool
 }
 
 func (c *controller) Run(workers int, stopCh <-chan struct{}) {
