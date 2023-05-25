@@ -21,7 +21,7 @@ package internalversion
 import (
 	"fmt"
 
-	machine "github.com/gardener/machine-controller-manager/pkg/apis/machine"
+	machine "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 )

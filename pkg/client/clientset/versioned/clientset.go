@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"net/http"
 
-	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
+	machinev1alpha1 "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

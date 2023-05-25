@@ -33,9 +33,9 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	v1alpha1client "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
-	labelsutil "github.com/gardener/machine-controller-manager/pkg/util/labels"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	v1alpha1client "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
+	labelsutil "github.com/xuanson2406/machine-controller-manager/pkg/util/labels"
 	v1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -48,7 +48,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/utils/integer"
 
-	v1alpha1listers "github.com/gardener/machine-controller-manager/pkg/client/listers/machine/v1alpha1"
+	v1alpha1listers "github.com/xuanson2406/machine-controller-manager/pkg/client/listers/machine/v1alpha1"
 )
 
 // MachineDeploymentListerExpansion allows custom methods to be added to MachineDeploymentLister.

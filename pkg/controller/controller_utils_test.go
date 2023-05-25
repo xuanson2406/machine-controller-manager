@@ -17,14 +17,14 @@ package controller
 
 import (
 	"context"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/machineutils"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machineutils"
 	"sort"
 	"strconv"
 
-	machinev1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	machinev1 "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

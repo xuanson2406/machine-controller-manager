@@ -28,9 +28,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/controller/autoscaler"
-	"github.com/gardener/machine-controller-manager/pkg/util/nodeops"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/controller/autoscaler"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/nodeops"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"

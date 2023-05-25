@@ -13,12 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/test/integration/common/helpers"
-	"github.com/gardener/machine-controller-manager/pkg/test/utils/matchers"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/test/integration/common/helpers"
+	"github.com/xuanson2406/machine-controller-manager/pkg/test/utils/matchers"
 	appsV1 "k8s.io/api/apps/v1"
 	coreV1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -745,7 +745,7 @@ func (c *IntegrationTestFramework) SetupBeforeSuite() {
 			gomega.Expect(c.prepareMcmDeployment(mcContainerImage, mcmContainerImage, false)).To(gomega.BeNil())
 		} else {
 			ginkgo.By("Cloning Machine-Controller-Manager github repo")
-			gomega.Expect(helpers.CloneRepo("https://github.com/gardener/machine-controller-manager.git", mcmRepoPath)).
+			gomega.Expect(helpers.CloneRepo("https://github.com/xuanson2406/machine-controller-manager.git", mcmRepoPath)).
 				To(gomega.BeNil())
 
 			ginkgo.By("Scaledown existing machine controllers")
@@ -757,7 +757,7 @@ func (c *IntegrationTestFramework) SetupBeforeSuite() {
 		//TODO : Scaledown the MCM deployment of the actual seed of the target cluster
 
 		ginkgo.By("Cloning Machine-Controller-Manager github repo")
-		gomega.Expect(helpers.CloneRepo("https://github.com/gardener/machine-controller-manager.git", mcmRepoPath)).
+		gomega.Expect(helpers.CloneRepo("https://github.com/xuanson2406/machine-controller-manager.git", mcmRepoPath)).
 			To(gomega.BeNil())
 
 		//create the custom resources in the control cluster using yaml files

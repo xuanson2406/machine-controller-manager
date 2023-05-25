@@ -18,9 +18,9 @@
 
 ## Motivation
 
-* [MCM Issue#750](https://github.com/gardener/machine-controller-manager/issues/750) There is a requirement to provide a way for consumers to add tags which can be hot-updated onto VMs. This requirement can be generalized to also offer a convenient way to specify tags which can be applied to VMs, NICs, Devices etc.
+* [MCM Issue#750](https://github.com/xuanson2406/machine-controller-manager/issues/750) There is a requirement to provide a way for consumers to add tags which can be hot-updated onto VMs. This requirement can be generalized to also offer a convenient way to specify tags which can be applied to VMs, NICs, Devices etc.
 
-* [MCM Issue#635](https://github.com/gardener/machine-controller-manager/issues/635) which in turn points to [MCM-Provider-AWS Issue#36](https://github.com/gardener/machine-controller-manager-provider-aws/issues/36#issuecomment-677530395) - The issue hints at other fields like enable/disable [source/destination checks for NAT instances](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_NAT_Instance.html#EIP_Disable_SrcDestCheck) which needs to be hot-updated on network interfaces.
+* [MCM Issue#635](https://github.com/xuanson2406/machine-controller-manager/issues/635) which in turn points to [MCM-Provider-AWS Issue#36](https://github.com/xuanson2406/machine-controller-manager-provider-aws/issues/36#issuecomment-677530395) - The issue hints at other fields like enable/disable [source/destination checks for NAT instances](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_NAT_Instance.html#EIP_Disable_SrcDestCheck) which needs to be hot-updated on network interfaces.
 
 * In GCP provider - `instance.ServiceAccounts` can be updated without the need to roll-over the instance. [See](https://cloud.google.com/compute/docs/access/service-accounts)
 
@@ -34,7 +34,7 @@ All tags that are added via means other than MachineClass.ProviderSpec should be
 
 WorkerPool configuration inside [shootYaml](https://github.com/gardener/gardener/blob/fb29d38e6615ed17d409a8271a285254d9dd00ad/example/90-shoot.yaml#L61-L62) provides a way to set labels. As per the [definition](https://gardener.cloud/docs/gardener/api-reference/core/#core.gardener.cloud/v1beta1.Worker) these labels will be applied on `Node` resources. Currently these labels are also passed to the VMs as tags. There is no distinction made between `Node` labels and `VM` tags.
 
-`MachineClass` has a field which holds [provider specific configuration](https://github.com/gardener/machine-controller-manager/blob/master/pkg/apis/machine/v1alpha1/machineclass_types.go#L54) and one such configuration is `tags`. Gardener provider extensions updates the tags in `MachineClass`.
+`MachineClass` has a field which holds [provider specific configuration](https://github.com/xuanson2406/machine-controller-manager/blob/master/pkg/apis/machine/v1alpha1/machineclass_types.go#L54) and one such configuration is `tags`. Gardener provider extensions updates the tags in `MachineClass`.
 
 * AWS provider extension directly passes the labels to the [tag section](https://github.com/gardener/gardener-extension-provider-aws/blob/0a740eeca301320275d77d1c48d3c32d4ebcd7dd/pkg/controller/worker/machines.go#L158-L164) of machineClass.
 * Azure provider extension [sanitizes](https://github.com/gardener/gardener-extension-provider-azure/blob/b6424f0122e174863e783555aa0ad68700edd87b/pkg/controller/worker/machines.go#L371-L373) the woker pool labels and adds them as [tags in MachineClass](https://github.com/gardener/gardener-extension-provider-azure/blob/b6424f0122e174863e783555aa0ad68700edd87b/pkg/controller/worker/machines.go#L187).
@@ -77,10 +77,10 @@ Out of the above three tag categories, MCM depends `section-2` tags (`mandatory-
 
 | Provider | Resources Tags are set on                                                      | Code Reference                                                                                                                                                                                                                                                           | Comment                                                                        |
 | -------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| AWS      | Instance(VM), Volume, Network-Interface                                        | [aws-VM-Vol-NIC](https://github.com/gardener/machine-controller-manager-provider-aws/blob/v0.17.0/pkg/aws/core.go#L116-L129)                                                                                                                                             | No distinction is made between tags set on VM, NIC or Volume                   |
-| Azure    | Instance(VM), Network-Interface                                                | [azure-VM-parameters](https://github.com/gardener/machine-controller-manager-provider-azure/blob/v0.10.0/pkg/azure/utils.go#L234) & [azureNIC-Parameters](https://github.com/gardener/machine-controller-manager-provider-azure/blob/v0.10.0/pkg/azure/utils.go#L116)    |                                                                                |
-| GCP      | Instance(VM), 1 tag: `name` (denoting the name of the worker) is added to Disk | [gcp-VM](https://github.com/gardener/machine-controller-manager-provider-gcp/blob/v0.14.0/pkg/gcp/machine_controller_util.go#L78-L80) & [gcp-Disk](https://github.com/gardener/gardener-extension-provider-gcp/blob/v1.28.1/pkg/controller/worker/machines.go#L291-L293) | In GCP key-value pairs are called `labels` while `network tags` have only keys |
-| AliCloud | Instance(VM)                                                                   | [aliCloud-VM](https://github.com/gardener/machine-controller-manager-provider-alicloud/blob/master/pkg/spi/spi.go#L125-L129)                                                                                                                                             |                                                                                |
+| AWS      | Instance(VM), Volume, Network-Interface                                        | [aws-VM-Vol-NIC](https://github.com/xuanson2406/machine-controller-manager-provider-aws/blob/v0.17.0/pkg/aws/core.go#L116-L129)                                                                                                                                             | No distinction is made between tags set on VM, NIC or Volume                   |
+| Azure    | Instance(VM), Network-Interface                                                | [azure-VM-parameters](https://github.com/xuanson2406/machine-controller-manager-provider-azure/blob/v0.10.0/pkg/azure/utils.go#L234) & [azureNIC-Parameters](https://github.com/xuanson2406/machine-controller-manager-provider-azure/blob/v0.10.0/pkg/azure/utils.go#L116)    |                                                                                |
+| GCP      | Instance(VM), 1 tag: `name` (denoting the name of the worker) is added to Disk | [gcp-VM](https://github.com/xuanson2406/machine-controller-manager-provider-gcp/blob/v0.14.0/pkg/gcp/machine_controller_util.go#L78-L80) & [gcp-Disk](https://github.com/gardener/gardener-extension-provider-gcp/blob/v1.28.1/pkg/controller/worker/machines.go#L291-L293) | In GCP key-value pairs are called `labels` while `network tags` have only keys |
+| AliCloud | Instance(VM)                                                                   | [aliCloud-VM](https://github.com/xuanson2406/machine-controller-manager-provider-alicloud/blob/master/pkg/spi/spi.go#L125-L129)                                                                                                                                             |                                                                                |
 
 ## What are the problems with the current approach?
 
@@ -88,7 +88,7 @@ There are a few shortcomings in the way tags/labels are handled:
 
 * Tags can only be set at the time a machine is created.
 * There is no distinction made amongst tags/labels that are added to VM's, disks or network interfaces. As stated above for AWS same set of tags are added to all. There is a limit defined on the number of tags/labels that can be associated to the devices (disks, VMs, NICs etc). Example: In AWS a max of [50 user created tags are allowed](https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html). Similar restrictions are applied on different resources across providers. Therefore adding all tags to all devices even if the subset of tags are not meant for that resource exhausts the total allowed tags/labels for that resource.
-* The only placeholder in shoot yaml as mentioned above is meant to only hold labels that should be applied on primarily on the [Node](https://github.com/gardener/gardener/blob/v1.66.1/pkg/apis/core/v1beta1/types_shoot.go#L1315-L1317) objects. So while you could use the node labels for [extended resources](https://github.com/gardener/machine-controller-manager/issues/727), using it also for tags is not clean.
+* The only placeholder in shoot yaml as mentioned above is meant to only hold labels that should be applied on primarily on the [Node](https://github.com/gardener/gardener/blob/v1.66.1/pkg/apis/core/v1beta1/types_shoot.go#L1315-L1317) objects. So while you could use the node labels for [extended resources](https://github.com/xuanson2406/machine-controller-manager/issues/727), using it also for tags is not clean.
 * There is no provision in the shoot YAML today to add tags only to a subset of resources.
 
 ### MachineClass Update and its impact
@@ -197,13 +197,13 @@ Currently `WorkerPoolHash` function uses the [entire providerConfig](https://git
 
 The above will ensure that tags and any other field in `WorkerConfig` which is marked with `updatable:true` is not considered for hash computation and will therefore not contribute to changing the name of `MachineClass` object thus preventing a rolling update.
 
-`WorkerConfig` and therefore the contained tags will be set as [ProviderSpec](https://github.com/gardener/machine-controller-manager/blob/master/pkg/apis/machine/v1alpha1/machineclass_types.go#L54) in `MachineClass`.
+`WorkerConfig` and therefore the contained tags will be set as [ProviderSpec](https://github.com/xuanson2406/machine-controller-manager/blob/master/pkg/apis/machine/v1alpha1/machineclass_types.go#L54) in `MachineClass`.
 
 If only fields which have `updatable:true` are changed then it should result in update/patch of `MachineClass` and not creation. 
 
 ### Driver interface changes
 
-[Driver](https://github.com/gardener/machine-controller-manager/blob/master/pkg/util/provider/driver/driver.go#L28) interface which is a facade to provider specific API implementations will have one additional method.
+[Driver](https://github.com/xuanson2406/machine-controller-manager/blob/master/pkg/util/provider/driver/driver.go#L28) interface which is a facade to provider specific API implementations will have one additional method.
 
 ```golang
 type Driver interface {
@@ -228,7 +228,7 @@ type UpdateMachineRequest struct {
 
 ### Machine Class reconciliation
 
-Current [MachineClass reconciliation](https://github.com/gardener/machine-controller-manager/blob/v0.48.1/pkg/util/provider/machinecontroller/machineclass.go#L140-L194) does not reconcile `MachineClass` resource updates but it only enqueues associated machines. The reason is that it is assumed that anything that is changed in a MachineClass will result in a creation of a new MachineClass with a different name. This will result in a rolling update of all machines using the MachineClass as a template.
+Current [MachineClass reconciliation](https://github.com/xuanson2406/machine-controller-manager/blob/v0.48.1/pkg/util/provider/machinecontroller/machineclass.go#L140-L194) does not reconcile `MachineClass` resource updates but it only enqueues associated machines. The reason is that it is assumed that anything that is changed in a MachineClass will result in a creation of a new MachineClass with a different name. This will result in a rolling update of all machines using the MachineClass as a template.
 
 However, it is possible that there is data that all machines in a `MachineSet` share which do not require a rolling update (e.g. tags), therefore there is a need to reconcile the MachineClass as well.
 
@@ -240,13 +240,13 @@ However, it is possible that there is data that all machines in a `MachineSet` s
 
 In order to ensure that machines get updated eventually with changes to the `hot-updatable` fields defined in the `MachineClass.ProviderConfig` as `raw.Extension`.
 
-We should only fix [MCM Issue#751](https://github.com/gardener/machine-controller-manager/issues/751) in the MachineClass reconciliation and let it enqueue the machines as it does today. We additionally propose the following two things:
+We should only fix [MCM Issue#751](https://github.com/xuanson2406/machine-controller-manager/issues/751) in the MachineClass reconciliation and let it enqueue the machines as it does today. We additionally propose the following two things:
 
 1. Introduce a new annotation `last-applied-providerspec` on every machine resource. This will capture the last successfully applied `MachineClass.ProviderSpec` on this instance.
 
 2. Enhance the machine reconciliation to include code to hot-update machine. 
 
-In [machine-reconciliation](https://github.com/gardener/machine-controller-manager/blob/v0.48.1/pkg/util/provider/machinecontroller/machine.go#L114) there are currently two flows `triggerDeletionFlow` and `triggerCreationFlow`. When a machine gets enqueued due to changes in MachineClass then in this method following changes needs to be introduced:
+In [machine-reconciliation](https://github.com/xuanson2406/machine-controller-manager/blob/v0.48.1/pkg/util/provider/machinecontroller/machine.go#L114) there are currently two flows `triggerDeletionFlow` and `triggerCreationFlow`. When a machine gets enqueued due to changes in MachineClass then in this method following changes needs to be introduced:
 
 
 Check if the machine has `last-applied-providerspec` annotation. 
@@ -267,7 +267,7 @@ If the annotation is present then compare the last applied provider-spec with th
 
 
 
-Trigger update flow can be done after `reconcileMachineHealth` and `syncMachineNodeTemplates` in [machine-reconciliation](https://github.com/gardener/machine-controller-manager/blob/v0.48.1/pkg/util/provider/machinecontroller/machine.go#L164-L175).
+Trigger update flow can be done after `reconcileMachineHealth` and `syncMachineNodeTemplates` in [machine-reconciliation](https://github.com/xuanson2406/machine-controller-manager/blob/v0.48.1/pkg/util/provider/machinecontroller/machine.go#L164-L175).
 
 
 

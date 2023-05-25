@@ -22,10 +22,10 @@ import (
 	"sync"
 	"time"
 
-	machinev1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	machinev1 "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
 
 	k8sError "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -62,68 +62,6 @@ github.com/evanphx/json-patch
 # github.com/fsnotify/fsnotify v1.6.0
 ## explicit; go 1.16
 github.com/fsnotify/fsnotify
-# github.com/gardener/machine-controller-manager v0.49.1
-## explicit; go 1.19
-github.com/gardener/machine-controller-manager/cmd/machine-controller-manager/app
-github.com/gardener/machine-controller-manager/cmd/machine-controller-manager/app/options
-github.com/gardener/machine-controller-manager/pkg/apis/machine
-github.com/gardener/machine-controller-manager/pkg/apis/machine/install
-github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1
-github.com/gardener/machine-controller-manager/pkg/apis/machine/validation
-github.com/gardener/machine-controller-manager/pkg/client/clientset/internalversion
-github.com/gardener/machine-controller-manager/pkg/client/clientset/internalversion/scheme
-github.com/gardener/machine-controller-manager/pkg/client/clientset/internalversion/typed/machine/internalversion
-github.com/gardener/machine-controller-manager/pkg/client/clientset/internalversion/typed/machine/internalversion/fake
-github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned
-github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/fake
-github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme
-github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1
-github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1/fake
-github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions
-github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions/internalinterfaces
-github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions/machine
-github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions/machine/v1alpha1
-github.com/gardener/machine-controller-manager/pkg/client/informers/internalversion/internalinterfaces
-github.com/gardener/machine-controller-manager/pkg/client/informers/internalversion/machine
-github.com/gardener/machine-controller-manager/pkg/client/informers/internalversion/machine/internalversion
-github.com/gardener/machine-controller-manager/pkg/client/listers/machine/internalversion
-github.com/gardener/machine-controller-manager/pkg/client/listers/machine/v1alpha1
-github.com/gardener/machine-controller-manager/pkg/controller
-github.com/gardener/machine-controller-manager/pkg/controller/autoscaler
-github.com/gardener/machine-controller-manager/pkg/fakeclient
-github.com/gardener/machine-controller-manager/pkg/features
-github.com/gardener/machine-controller-manager/pkg/handlers
-github.com/gardener/machine-controller-manager/pkg/metrics
-github.com/gardener/machine-controller-manager/pkg/options
-github.com/gardener/machine-controller-manager/pkg/test/integration/common/helpers
-github.com/gardener/machine-controller-manager/pkg/test/utils/matchers
-github.com/gardener/machine-controller-manager/pkg/util/annotations
-github.com/gardener/machine-controller-manager/pkg/util/client/leaderelectionconfig
-github.com/gardener/machine-controller-manager/pkg/util/client/metrics/prometheus
-github.com/gardener/machine-controller-manager/pkg/util/clientbuilder/core
-github.com/gardener/machine-controller-manager/pkg/util/clientbuilder/machine
-github.com/gardener/machine-controller-manager/pkg/util/configz
-github.com/gardener/machine-controller-manager/pkg/util/hash
-github.com/gardener/machine-controller-manager/pkg/util/k8sutils
-github.com/gardener/machine-controller-manager/pkg/util/labels
-github.com/gardener/machine-controller-manager/pkg/util/nodeops
-github.com/gardener/machine-controller-manager/pkg/util/permits
-github.com/gardener/machine-controller-manager/pkg/util/provider/app/options
-github.com/gardener/machine-controller-manager/pkg/util/provider/cache
-github.com/gardener/machine-controller-manager/pkg/util/provider/drain
-github.com/gardener/machine-controller-manager/pkg/util/provider/driver
-github.com/gardener/machine-controller-manager/pkg/util/provider/machinecodes/codes
-github.com/gardener/machine-controller-manager/pkg/util/provider/machinecodes/status
-github.com/gardener/machine-controller-manager/pkg/util/provider/machinecontroller
-github.com/gardener/machine-controller-manager/pkg/util/provider/machineutils
-github.com/gardener/machine-controller-manager/pkg/util/provider/metrics
-github.com/gardener/machine-controller-manager/pkg/util/provider/options
-github.com/gardener/machine-controller-manager/pkg/util/reflector/prometheus
-github.com/gardener/machine-controller-manager/pkg/util/strings
-github.com/gardener/machine-controller-manager/pkg/util/taints
-github.com/gardener/machine-controller-manager/pkg/util/time
-github.com/gardener/machine-controller-manager/pkg/util/worker
-github.com/gardener/machine-controller-manager/pkg/util/workqueue/prometheus
 # github.com/go-git/gcfg v1.5.0
 ## explicit
 github.com/go-git/gcfg

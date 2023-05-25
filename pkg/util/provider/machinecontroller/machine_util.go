@@ -34,16 +34,16 @@ import (
 	"strings"
 	"time"
 
-	machineapi "github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/util/nodeops"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/drain"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/driver"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/machinecodes/codes"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/machinecodes/status"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/machineutils"
-	utilstrings "github.com/gardener/machine-controller-manager/pkg/util/strings"
-	utiltime "github.com/gardener/machine-controller-manager/pkg/util/time"
+	machineapi "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/nodeops"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/drain"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/driver"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machinecodes/codes"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machinecodes/status"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machineutils"
+	utilstrings "github.com/xuanson2406/machine-controller-manager/pkg/util/strings"
+	utiltime "github.com/xuanson2406/machine-controller-manager/pkg/util/time"
 
 	"github.com/xuanson2406/go-vcloud-director-fptcloud/v2/govcd"
 	v1 "k8s.io/api/core/v1"
@@ -1068,7 +1068,7 @@ func (c *controller) getVMStatus(ctx context.Context, getMachineStatusRequest *d
 		},
 		// Let the clone.Status.CurrentStatus (LastUpdateTime) be as it was before.
 		// This helps while computing when the drain timeout to determine if force deletion is to be triggered.
-		// Ref - https://github.com/gardener/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
+		// Ref - https://github.com/xuanson2406/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
 		getMachineStatusRequest.Machine.Status.CurrentStatus,
 		getMachineStatusRequest.Machine.Status.LastKnownState,
 	)
@@ -1256,7 +1256,7 @@ func (c *controller) drainNode(ctx context.Context, deleteMachineRequest *driver
 		},
 		// Let the clone.Status.CurrentStatus (LastUpdateTime) be as it was before.
 		// This helps while computing when the drain timeout to determine if force deletion is to be triggered.
-		// Ref - https://github.com/gardener/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
+		// Ref - https://github.com/xuanson2406/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
 		machine.Status.CurrentStatus,
 		machine.Status.LastKnownState,
 	)
@@ -1323,7 +1323,7 @@ func (c *controller) deleteVM(ctx context.Context, deleteMachineRequest *driver.
 		},
 		// Let the clone.Status.CurrentStatus (LastUpdateTime) be as it was before.
 		// This helps while computing when the drain timeout to determine if force deletion is to be triggered.
-		// Ref - https://github.com/gardener/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
+		// Ref - https://github.com/xuanson2406/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
 		machine.Status.CurrentStatus,
 		lastKnownState,
 	)
@@ -1375,7 +1375,7 @@ func (c *controller) deleteNodeObject(ctx context.Context, machine *v1alpha1.Mac
 		},
 		// Let the clone.Status.CurrentStatus (LastUpdateTime) be as it was before.
 		// This helps while computing when the drain timeout to determine if force deletion is to be triggered.
-		// Ref - https://github.com/gardener/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
+		// Ref - https://github.com/xuanson2406/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
 		machine.Status.CurrentStatus,
 		machine.Status.LastKnownState,
 	)

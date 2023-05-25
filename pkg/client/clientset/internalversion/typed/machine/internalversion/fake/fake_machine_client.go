@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	internalversion "github.com/gardener/machine-controller-manager/pkg/client/clientset/internalversion/typed/machine/internalversion"
+	internalversion "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/internalversion/typed/machine/internalversion"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

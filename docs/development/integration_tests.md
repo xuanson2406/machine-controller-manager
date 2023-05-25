@@ -21,7 +21,7 @@ Integration tests for `machine-controller-manager-provider-{provider-name}` can 
 
 If the Control Cluster  is a Gardener Shoot cluster then,
 
-1. Deploy a `Secret` named `test-mc-secret` (that contains the provider secret and cloud-config) in the `default` namespace of the Control Cluster. Refer [these](https://github.com/gardener/machine-controller-manager/tree/master/kubernetes/machine_classes) `MachineClass` templates for the same.
+1. Deploy a `Secret` named `test-mc-secret` (that contains the provider secret and cloud-config) in the `default` namespace of the Control Cluster. Refer [these](https://github.com/xuanson2406/machine-controller-manager/tree/master/kubernetes/machine_classes) `MachineClass` templates for the same.
 1. Create a `dev/machineclassv1.yaml` file in the cloned repository. The name of the `MachineClass` itself should be `test-mc-v1`. The value of `providerSpec.secretRef.name` should be `test-mc-secret`. 
 1. (Optional) Create an additional `dev/machineclassv2.yaml` file similar to above but with a bigger machine type and update the `Makefile` variable `MACHINECLASS_V2` to point to `dev/machineclassv2.yaml`.
 
@@ -30,7 +30,7 @@ If the Control Cluster  is a Gardener Shoot cluster then,
 If the Control Cluster  is a Gardener SEED cluster then, the suite ideally employs the already existing `MachineClass` and Secrets. However,
 
 1. (Optional) User can employ a custom `MachineClass` for the tests using below steps:
-    1. Deploy a `Secret` named `test-mc-secret` (that contains the provider secret and cloud-config) in the shoot namespace of the Control Cluster. That is, the value of `metadata.namespace` should be `technicalID` of the Shoot and it will be of the pattern `shoot--<project>--<shoot-name>`. Refer [these](https://github.com/gardener/machine-controller-manager/tree/master/kubernetes/machine_classes) `MachineClass` templates for the same. 
+    1. Deploy a `Secret` named `test-mc-secret` (that contains the provider secret and cloud-config) in the shoot namespace of the Control Cluster. That is, the value of `metadata.namespace` should be `technicalID` of the Shoot and it will be of the pattern `shoot--<project>--<shoot-name>`. Refer [these](https://github.com/xuanson2406/machine-controller-manager/tree/master/kubernetes/machine_classes) `MachineClass` templates for the same. 
     1. Create a `dev/machineclassv1.yaml` file.
         1. `providerSpec.secretRef.name` should refer the secret created in the previous step.
         1. `metadata.namespace` and `providerSpec.secretRef.namespace` should be `technicalID` (`shoot--<project>--<shoot-name>`) of the shoot.
@@ -48,7 +48,7 @@ If the Control Cluster  is a Gardener SEED cluster then, the suite ideally emplo
 1. The controllers log files (`mcm_process.log` and `mc_process.log`) are stored in `.ci/controllers-test/logs` repo and can be used later.
 ## Adding Integration Tests for new providers
 
-For a new provider, Running Integration tests works with no changes. But for the orphan resource test cases to work correctly, the provider-specific API calls and the Resource Tracker Interface (RTI) should be implemented. Please check [`machine-controller-manager-provider-aws`](https://github.com/gardener/machine-controller-manager-provider-aws/blob/master/test/integration/provider/) for reference.
+For a new provider, Running Integration tests works with no changes. But for the orphan resource test cases to work correctly, the provider-specific API calls and the Resource Tracker Interface (RTI) should be implemented. Please check [`machine-controller-manager-provider-aws`](https://github.com/xuanson2406/machine-controller-manager-provider-aws/blob/master/test/integration/provider/) for reference.
 
 ## Extending integration tests
 

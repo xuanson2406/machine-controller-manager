@@ -21,8 +21,8 @@ package v1alpha1
 import (
 	"net/http"
 
-	v1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
+	v1alpha1 "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
 

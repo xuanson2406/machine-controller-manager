@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	fakeuntyped "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/fake"
+	fakeuntyped "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/fake"
 	apipolicyv1beta1 "k8s.io/api/policy/v1beta1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -20,7 +20,7 @@ package options
 import (
 	"time"
 
-	mcmoptions "github.com/gardener/machine-controller-manager/pkg/options"
+	mcmoptions "github.com/xuanson2406/machine-controller-manager/pkg/options"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

@@ -38,13 +38,13 @@ import (
 	"k8s.io/klog/v2"
 	"k8s.io/utils/pointer"
 
-	machine_internal "github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	faketyped "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1/fake"
-	machineinformers "github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions"
-	customfake "github.com/gardener/machine-controller-manager/pkg/fakeclient"
-	"github.com/gardener/machine-controller-manager/pkg/options"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/cache"
+	machine_internal "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	faketyped "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1/fake"
+	machineinformers "github.com/xuanson2406/machine-controller-manager/pkg/client/informers/externalversions"
+	customfake "github.com/xuanson2406/machine-controller-manager/pkg/fakeclient"
+	"github.com/xuanson2406/machine-controller-manager/pkg/options"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/cache"
 )
 
 func TestMachineControllerManagerSuite(t *testing.T) {
