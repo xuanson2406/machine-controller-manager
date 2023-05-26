@@ -1,9 +1,9 @@
 package validation
 
 import (
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"strings"

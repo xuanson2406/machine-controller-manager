@@ -14,11 +14,11 @@ import (
 	"strings"
 	"time"
 
-	v1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/test/integration/common/helpers"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	v1alpha1 "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/test/integration/common/helpers"
 	appsV1 "k8s.io/api/apps/v1"
 	coreV1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -81,12 +81,12 @@ var (
 	isTagsStrings = os.Getenv("TAGS_ARE_STRINGS")
 )
 
-//ProviderSpecPatch struct holds tags for provider, which we want to patch the  machineclass with
+// ProviderSpecPatch struct holds tags for provider, which we want to patch the  machineclass with
 type ProviderSpecPatch struct {
 	Tags []string `json:"tags"`
 }
 
-//MachineClassPatch struct holds values of patch for machine class for provider GCP
+// MachineClassPatch struct holds values of patch for machine class for provider GCP
 type MachineClassPatch struct {
 	ProviderSpec ProviderSpecPatch `json:"providerSpec"`
 }
@@ -680,7 +680,7 @@ func rotateLogFile(fileName string) (*os.File, error) {
 	return os.Create(fileName)
 }
 
-//runControllersLocally run the machine controller and machine controller manager binary locally
+// runControllersLocally run the machine controller and machine controller manager binary locally
 func (c *IntegrationTestFramework) runControllersLocally() {
 	ginkgo.By("Starting Machine Controller ")
 	args := strings.Fields(
@@ -738,7 +738,7 @@ func (c *IntegrationTestFramework) SetupBeforeSuite() {
 			gomega.Expect(c.prepareMcmDeployment(mcContainerImage, mcmContainerImage, false)).To(gomega.BeNil())
 		} else {
 			ginkgo.By("Cloning Machine-Controller-Manager github repo")
-			gomega.Expect(helpers.CloneRepo("https://github.com/gardener/machine-controller-manager.git", mcmRepoPath)).
+			gomega.Expect(helpers.CloneRepo("https://github.com/xuanson2406/machine-controller-manager.git", mcmRepoPath)).
 				To(gomega.BeNil())
 
 			ginkgo.By("Scaledown existing machine controllers")
@@ -750,7 +750,7 @@ func (c *IntegrationTestFramework) SetupBeforeSuite() {
 		//TODO : Scaledown the MCM deployment of the actual seed of the target cluster
 
 		ginkgo.By("Cloning Machine-Controller-Manager github repo")
-		gomega.Expect(helpers.CloneRepo("https://github.com/gardener/machine-controller-manager.git", mcmRepoPath)).
+		gomega.Expect(helpers.CloneRepo("https://github.com/xuanson2406/machine-controller-manager.git", mcmRepoPath)).
 			To(gomega.BeNil())
 
 		//create the custom resources in the control cluster using yaml files
@@ -1174,7 +1174,7 @@ func (c *IntegrationTestFramework) ControllerTests() {
 	})
 }
 
-//Cleanup performs rollback of original resources and removes any machines created by the test
+// Cleanup performs rollback of original resources and removes any machines created by the test
 func (c *IntegrationTestFramework) Cleanup() {
 
 	ctx := context.Background()

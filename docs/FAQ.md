@@ -46,7 +46,7 @@ this document. Few of the answers assume that the MCM being used is in conjuctio
 
 ### What is Machine Controller Manager?
 
-Machine Controller Manager aka MCM is a bunch of controllers used for the lifecycle management of the worker machines. It reconciles a set of CRDs such as `Machine`, `MachineSet`, `MachineDeployment` which depicts the functionality of `Pod`, `Replicaset`, `Deployment` of the core Kubernetes respectively. Read more about it at [README](https://github.com/gardener/machine-controller-manager/tree/master/docs).
+Machine Controller Manager aka MCM is a bunch of controllers used for the lifecycle management of the worker machines. It reconciles a set of CRDs such as `Machine`, `MachineSet`, `MachineDeployment` which depicts the functionality of `Pod`, `Replicaset`, `Deployment` of the core Kubernetes respectively. Read more about it at [README](https://github.com/xuanson2406/machine-controller-manager/tree/master/docs).
 
 * Gardener uses MCM to manage its Kubernetes nodes of the shoot cluster. However, by design, MCM can be used independent of Gardener.
 
@@ -68,7 +68,7 @@ MCM mainly contains the following sub-controllers:
 
 * `MachineDeployment Controller`: Responsible for reconciling the `MachineDeployment` objects. It manages the lifecycle of the `MachineSet` objects.
 * `MachineSet Controller`: Responsible for reconciling the `MachineSet` objects. It manages the lifecycle of the `Machine` objects.
-* `Machine Controller`: responsible for reconciling the `Machine` objects. It manages the lifecycle of the actual VMs/machines created in cloud/on-prem. This controller has been moved out of tree. Please refer an AWS machine controller for more info - [link](https://github.com/gardener/machine-controller-manager-provider-gcp).
+* `Machine Controller`: responsible for reconciling the `Machine` objects. It manages the lifecycle of the actual VMs/machines created in cloud/on-prem. This controller has been moved out of tree. Please refer an AWS machine controller for more info - [link](https://github.com/xuanson2406/machine-controller-manager-provider-gcp).
 * Safety-controller: Responsible for handling the unidentified/unknown behaviors from the cloud providers. Please read more about its functionality [below](#what-is-safety-controller).
 
 ### What is Safety Controller in MCM?
@@ -77,9 +77,9 @@ MCM mainly contains the following sub-controllers:
 
 * Orphan VM handler:
   * It lists all the VMs in the cloud matching the `tag` of given cluster name and maps the VMs with the `machine` objects using the `ProviderID` field. VMs without any backing `machine` objects are logged and deleted after confirmation.
-  * This handler runs every 30 minutes and is configurable via [machine-safety-orphan-vms-period](https://github.com/gardener/machine-controller-manager/blob/master/cmd/machine-controller-manager/app/options/options.go#L112) flag.
+  * This handler runs every 30 minutes and is configurable via [machine-safety-orphan-vms-period](https://github.com/xuanson2406/machine-controller-manager/blob/master/cmd/machine-controller-manager/app/options/options.go#L112) flag.
 * Freeze mechanism: 
-  * `Safety Controller` freezes the `MachineDeployment` and `MachineSet` controller if the number of `machine` objects goes beyond a certain threshold on top of `Spec.Replicas`. It can be configured by the flag [--safety-up or --safety-down](https://github.com/gardener/machine-controller-manager/blob/master/cmd/machine-controller-manager/app/options/options.go#L102-L103) and also [machine-safety-overshooting-period](https://github.com/gardener/machine-controller-manager/blob/master/cmd/machine-controller-manager/app/options/options.go#L113).
+  * `Safety Controller` freezes the `MachineDeployment` and `MachineSet` controller if the number of `machine` objects goes beyond a certain threshold on top of `Spec.Replicas`. It can be configured by the flag [--safety-up or --safety-down](https://github.com/xuanson2406/machine-controller-manager/blob/master/cmd/machine-controller-manager/app/options/options.go#L102-L103) and also [machine-safety-overshooting-period](https://github.com/xuanson2406/machine-controller-manager/blob/master/cmd/machine-controller-manager/app/options/options.go#L113).
   * `Safety Controller` freezes the functionality of the MCM if either of the `target-apiserver` or the `control-apiserver` is not reachable.
   * `Safety Controller` unfreezes the MCM automatically once situation is resolved to normal. A `freeze` label is applied on `MachineDeployment`/`MachineSet` to enforce the freeze condition.
 
@@ -89,8 +89,8 @@ MCM mainly contains the following sub-controllers:
 
 MCM can be installed in a cluster with following steps:
 
-* Apply all the CRDs from [here](https://github.com/gardener/machine-controller-manager/tree/master/kubernetes/deployment/in-tree)
-* Apply all the deployment, role-related objects from [here](https://github.com/gardener/machine-controller-manager/tree/master/kubernetes/deployment/in-tree).
+* Apply all the CRDs from [here](https://github.com/xuanson2406/machine-controller-manager/tree/master/kubernetes/deployment/in-tree)
+* Apply all the deployment, role-related objects from [here](https://github.com/xuanson2406/machine-controller-manager/tree/master/kubernetes/deployment/in-tree).
 
   * Control cluster is the one where the `machine-*` objects are stored. Target cluster is where all the node objects are registered.
 
@@ -145,11 +145,11 @@ Please refer the following [document](../README.md#design-of-machine-controller-
 ### What are the different configuration options in MCM?
 
 MCM allows configuring many knobs to fine-tune its behavior according to the user's need. 
-Please refer to the [link](https://github.com/gardener/machine-controller-manager/blob/master/cmd/machine-controller-manager/app/options/options.go) to check the exact configuration options.
+Please refer to the [link](https://github.com/xuanson2406/machine-controller-manager/blob/master/cmd/machine-controller-manager/app/options/options.go) to check the exact configuration options.
 
 ### What are the different timeouts/configurations in a machine's lifecycle?
 
-A machine's lifecycle is governed by mainly following timeouts, which can be configured [here](https://github.com/gardener/machine-controller-manager/blob/master/kubernetes/machine_objects/machine-deployment.yaml#L30-L34).
+A machine's lifecycle is governed by mainly following timeouts, which can be configured [here](https://github.com/xuanson2406/machine-controller-manager/blob/master/kubernetes/machine_objects/machine-deployment.yaml#L30-L34).
 
 * `MachineDrainTimeout`: Amount of time after which drain times out and the machine is force deleted. Default ~2 hours.
 * `MachineHealthTimeout`: Amount of time after which an unhealthy machine is declared `Failed` and the machine is replaced by `MachineSet` controller.
@@ -225,7 +225,7 @@ It could possibly be debugged with following steps:
 
 ### How should I test my code before submitting a PR?
 
-- Developer can locally setup the MCM using following [guide](https://github.com/gardener/machine-controller-manager/blob/master/docs/development/local_setup.md)
+- Developer can locally setup the MCM using following [guide](https://github.com/xuanson2406/machine-controller-manager/blob/master/docs/development/local_setup.md)
 - Developer must also enhance the unit tests related to the incoming changes.
 - Developer can locally run the unit test by executing:
 ```
@@ -236,8 +236,8 @@ make test-unit
 
 Developer should add/update the API fields at both of the following places:
 
-* https://github.com/gardener/machine-controller-manager/blob/master/pkg/apis/machine/types.go
-* https://github.com/gardener/machine-controller-manager/tree/master/pkg/apis/machine/v1alpha1
+* https://github.com/xuanson2406/machine-controller-manager/blob/master/pkg/apis/machine/types.go
+* https://github.com/xuanson2406/machine-controller-manager/tree/master/pkg/apis/machine/v1alpha1
 
 Once API changes are done, auto-generate the code using following command:
 ```

@@ -18,7 +18,7 @@ limitations under the License.
 package controller
 
 import (
-	clientset "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned"
+	clientset "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned"
 	restclient "k8s.io/client-go/rest"
 
 	"k8s.io/klog/v2"

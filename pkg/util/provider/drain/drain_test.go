@@ -26,11 +26,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gardener/machine-controller-manager/pkg/fakeclient"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/driver"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/xuanson2406/machine-controller-manager/pkg/fakeclient"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/driver"
 	api "k8s.io/api/core/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
