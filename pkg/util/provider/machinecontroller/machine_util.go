@@ -835,8 +835,21 @@ sudo reboot`
 	if err != nil {
 		return fmt.Errorf("unable to wait for task customize VM %s with script: [%v]", machine.Name, err)
 	}
-	return nil
+	for {
+		err = vm.PowerOnAndForceCustomization()
+		if err != nil {
+			if strings.Contains(err.Error(), "API Error") {
+				time.Sleep(3 * time.Second)
+				continue
+			} else {
+				return fmt.Errorf("unable to power on vm %s with recustomizing option: [%v]", machine.Name, err)
+			}
+		}
+		klog.V(4).Infof("VM %s is power on", machine.Name)
+		break
+	}
 
+	return nil
 }
 func GetClientForController(credential map[string]string) (*govcd.VCDClient, error) {
 	// if one accidentially copies a newline character into the token, remove it!
