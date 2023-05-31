@@ -1,4 +1,4 @@
-module github.com/gardener/machine-controller-manager
+module github.com/xuanson2406/machine-controller-manager
 
 go 1.13
 
@@ -24,6 +24,7 @@ require (
 	github.com/prometheus/client_golang v0.9.2
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/spf13/pflag v1.0.3
+	github.com/xuanson2406/go-vcloud-director-fptcloud/v2 v2.1.5
 	golang.org/x/lint v0.0.0-20190313153728-d0100b6bd8b3
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	google.golang.org/api v0.4.0

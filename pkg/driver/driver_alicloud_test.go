@@ -17,10 +17,11 @@ limitations under the License.
 package driver
 
 import (
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"strconv"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"strconv"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )

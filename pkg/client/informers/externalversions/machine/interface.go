@@ -19,8 +19,8 @@ limitations under the License.
 package machine
 
 import (
-	internalinterfaces "github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions/internalinterfaces"
-	v1alpha1 "github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions/machine/v1alpha1"
+	internalinterfaces "github.com/xuanson2406/machine-controller-manager/pkg/client/informers/externalversions/internalinterfaces"
+	v1alpha1 "github.com/xuanson2406/machine-controller-manager/pkg/client/informers/externalversions/machine/v1alpha1"
 )
 
 // Interface provides access to each of this group's versions.

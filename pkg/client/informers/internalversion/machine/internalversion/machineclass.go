@@ -21,10 +21,10 @@ package internalversion
 import (
 	time "time"
 
-	machine "github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	clientsetinternalversion "github.com/gardener/machine-controller-manager/pkg/client/clientset/internalversion"
-	internalinterfaces "github.com/gardener/machine-controller-manager/pkg/client/informers/internalversion/internalinterfaces"
-	internalversion "github.com/gardener/machine-controller-manager/pkg/client/listers/machine/internalversion"
+	machine "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
+	clientsetinternalversion "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/internalversion"
+	internalinterfaces "github.com/xuanson2406/machine-controller-manager/pkg/client/informers/internalversion/internalinterfaces"
+	internalversion "github.com/xuanson2406/machine-controller-manager/pkg/client/listers/machine/internalversion"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"

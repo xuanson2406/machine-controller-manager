@@ -24,13 +24,13 @@ import (
 	"strings"
 	"time"
 
-	machineapi "github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/validation"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/driver"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/machinecodes/codes"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/machinecodes/status"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/machineutils"
+	machineapi "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/validation"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/driver"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machinecodes/codes"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machinecodes/status"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machineutils"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,8 +42,8 @@ import (
 )
 
 /*
-	SECTION
-	Machine controller - Machine add, update, delete watches
+SECTION
+Machine controller - Machine add, update, delete watches
 */
 func (c *controller) addMachine(obj interface{}) {
 	klog.V(4).Infof("Adding machine object")
@@ -173,8 +173,8 @@ func (c *controller) reconcileClusterMachine(machine *v1alpha1.Machine) (machine
 }
 
 /*
-	SECTION
-	Machine controller - nodeToMachine
+SECTION
+Machine controller - nodeToMachine
 */
 func (c *controller) addNodeToMachine(obj interface{}) {
 

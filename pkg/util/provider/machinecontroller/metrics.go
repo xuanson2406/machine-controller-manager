@@ -20,9 +20,9 @@ package controller
 import (
 	"strconv"
 
-	v1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/metrics"
 	"github.com/prometheus/client_golang/prometheus"
+	v1alpha1 "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/metrics"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )

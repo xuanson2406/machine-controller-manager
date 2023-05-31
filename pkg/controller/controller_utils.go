@@ -32,11 +32,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	machineapi "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
-	fakemachineapi "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1/fake"
-	annotationsutils "github.com/gardener/machine-controller-manager/pkg/util/annotations"
-	hashutil "github.com/gardener/machine-controller-manager/pkg/util/hash"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	machineapi "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
+	fakemachineapi "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1/fake"
+	annotationsutils "github.com/xuanson2406/machine-controller-manager/pkg/util/annotations"
+	hashutil "github.com/xuanson2406/machine-controller-manager/pkg/util/hash"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -822,7 +822,7 @@ func IsMachineFailed(p *v1alpha1.Machine) bool {
 }
 
 // MachineKey is the function used to get the machine name from machine object
-//ToCheck : as machine-namespace does not matter
+// ToCheck : as machine-namespace does not matter
 func MachineKey(machine *v1alpha1.Machine) string {
 	return fmt.Sprintf("%v", machine.Name)
 }

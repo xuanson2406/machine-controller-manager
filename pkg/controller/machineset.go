@@ -40,9 +40,9 @@ import (
 
 	"k8s.io/klog"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/validation"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/validation"
 )
 
 const (

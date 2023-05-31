@@ -50,7 +50,7 @@ Import the package `grpc/infraclient` and `grpc/infrapb` from MCM (currently in 
 
 ### Example implementation:
 This approach is implemented in MCM's "grpc-driver" branch:
-https://github.com/gardener/machine-controller-manager/tree/grpc-driver
+https://github.com/xuanson2406/machine-controller-manager/tree/grpc-driver
 
 Refer GRPC based implementation for AWS client:
 https://github.com/ggaurav10/aws-driver-grpc

@@ -22,8 +22,8 @@ package leaderelectionconfig
 import (
 	"time"
 
-	"github.com/gardener/machine-controller-manager/pkg/options"
 	"github.com/spf13/pflag"
+	"github.com/xuanson2406/machine-controller-manager/pkg/options"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	rl "k8s.io/client-go/tools/leaderelection/resourcelock"
 )

@@ -32,18 +32,18 @@ import (
 	"strconv"
 	"time"
 
-	machinescheme "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
-	machineinformers "github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions"
-	mcmcontroller "github.com/gardener/machine-controller-manager/pkg/controller"
-	corecontroller "github.com/gardener/machine-controller-manager/pkg/util/clientbuilder/core"
-	machinecontroller "github.com/gardener/machine-controller-manager/pkg/util/clientbuilder/machine"
+	machinescheme "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/scheme"
+	machineinformers "github.com/xuanson2406/machine-controller-manager/pkg/client/informers/externalversions"
+	mcmcontroller "github.com/xuanson2406/machine-controller-manager/pkg/controller"
+	corecontroller "github.com/xuanson2406/machine-controller-manager/pkg/util/clientbuilder/core"
+	machinecontroller "github.com/xuanson2406/machine-controller-manager/pkg/util/clientbuilder/machine"
 	coreinformers "k8s.io/client-go/informers"
 	kubescheme "k8s.io/client-go/kubernetes/scheme"
 
-	"github.com/gardener/machine-controller-manager/cmd/machine-controller-manager/app/options"
-	"github.com/gardener/machine-controller-manager/pkg/handlers"
-	"github.com/gardener/machine-controller-manager/pkg/util/configz"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/xuanson2406/machine-controller-manager/cmd/machine-controller-manager/app/options"
+	"github.com/xuanson2406/machine-controller-manager/pkg/handlers"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/configz"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -295,7 +295,9 @@ func StartControllers(s *options.MCMServer,
 }
 
 // TODO: In general, any controller checking this needs to be dynamic so
-//  users don't have to restart their controller manager if they change the apiserver.
+//
+//	users don't have to restart their controller manager if they change the apiserver.
+//
 // Until we get there, the structure here needs to be exposed for the construction of a proper ControllerContext.
 func getAvailableResources(clientBuilder corecontroller.ClientBuilder) (map[schema.GroupVersionResource]bool, error) {
 	var discoveryClient discovery.DiscoveryInterface

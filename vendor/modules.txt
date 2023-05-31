@@ -36,6 +36,8 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/ecs
+# github.com/araddon/dateparse v0.0.0-20190622164848-0fb0a474d195
+github.com/araddon/dateparse
 # github.com/aws/aws-sdk-go v1.23.13
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
@@ -136,6 +138,8 @@ github.com/gophercloud/gophercloud/pagination
 github.com/gophercloud/utils/client
 github.com/gophercloud/utils/env
 github.com/gophercloud/utils/openstack/clientconfig
+# github.com/hashicorp/go-version v1.2.0
+github.com/hashicorp/go-version
 # github.com/hashicorp/golang-lru v0.5.1
 github.com/hashicorp/golang-lru
 github.com/hashicorp/golang-lru/simplelru
@@ -151,6 +155,10 @@ github.com/imdario/mergo
 github.com/jmespath/go-jmespath
 # github.com/json-iterator/go v1.1.9
 github.com/json-iterator/go
+# github.com/kr/pretty v0.2.1
+github.com/kr/pretty
+# github.com/kr/text v0.1.0
+github.com/kr/text
 # github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
@@ -203,6 +211,8 @@ github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
 # github.com/packethost/packngo v0.0.0-20181217122008-b3b45f1b4979
 github.com/packethost/packngo
+# github.com/peterhellberg/link v1.1.0
+github.com/peterhellberg/link
 # github.com/prometheus/client_golang v0.9.2
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
@@ -221,6 +231,10 @@ github.com/prometheus/procfs/xfs
 github.com/satori/go.uuid
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
+# github.com/xuanson2406/go-vcloud-director-fptcloud/v2 v2.1.5
+github.com/xuanson2406/go-vcloud-director-fptcloud/v2/govcd
+github.com/xuanson2406/go-vcloud-director-fptcloud/v2/types/v56
+github.com/xuanson2406/go-vcloud-director-fptcloud/v2/util
 # go.opencensus.io v0.21.0
 go.opencensus.io
 go.opencensus.io/internal

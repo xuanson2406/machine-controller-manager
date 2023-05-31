@@ -19,7 +19,7 @@ limitations under the License.
 package scheme
 
 import (
-	machine "github.com/gardener/machine-controller-manager/pkg/apis/machine/install"
+	machine "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/install"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

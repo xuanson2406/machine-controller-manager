@@ -28,8 +28,8 @@ import (
 
 	"k8s.io/klog"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	machineapi "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	machineapi "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )

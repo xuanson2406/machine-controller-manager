@@ -18,7 +18,7 @@ Our strong recommendation would be to follow the steps below as this provides mo
     ```bash
     cd $GOPATH/src/github.com/{your-github-username}
     ```
-1. Clone [this repository](https://github.com/gardener/machine-controller-manager-provider-sampleprovider) on your local machine.
+1. Clone [this repository](https://github.com/xuanson2406/machine-controller-manager-provider-sampleprovider) on your local machine.
     ```bash
     git clone git@github.com:gardener/machine-controller-manager-provider-sampleprovider.git
     ```
@@ -58,9 +58,9 @@ The contract between he Machine Controller Manager (MCM) and the Machine Control
 
 #### Steps to integrate
 
-1. Update the `pkg/provider/apis/provider_spec.go` specification file to reflect the structure of the `ProviderSpec` blob. It typically contains the machine template details in the `MachineClass` object. Follow the sample spec provided already in the file. A sample provider specification can be found [here](https://github.com/gardener/machine-controller-manager-provider-aws/blob/master/pkg/aws/apis/aws_provider_spec.go).
+1. Update the `pkg/provider/apis/provider_spec.go` specification file to reflect the structure of the `ProviderSpec` blob. It typically contains the machine template details in the `MachineClass` object. Follow the sample spec provided already in the file. A sample provider specification can be found [here](https://github.com/xuanson2406/machine-controller-manager-provider-aws/blob/master/pkg/aws/apis/aws_provider_spec.go).
 1. Fill in the methods described at `pkg/provider/core.go` to manage VMs on your cloud provider. Comments are provided above each method to help you fill them up with desired `REQUEST` and `RESPONSE` parameters.
-    - A sample provider implementation for these methods can be found [here](https://github.com/gardener/machine-controller-manager-provider-aws/blob/master/pkg/aws/core.go).
+    - A sample provider implementation for these methods can be found [here](https://github.com/xuanson2406/machine-controller-manager-provider-aws/blob/master/pkg/aws/core.go).
     - Fill in the required methods `CreateMachine()`, and `DeleteMachine()` methods.
     - Optionally fill in methods like `GetMachineStatus()`, `ListMachines()`, and `GetVolumeIDs()`. You may choose to fill these, once the working of the required methods seem to be working.
         - `GetVolumeIDs()` expects VolumeIDs to be decoded from the volumeSpec based on the cloud provider.
@@ -87,7 +87,7 @@ Make sure `$TARGET_KUBECONFIG` points to the cluster where you wish to manage ma
         make start
         ```
 1. On the second terminal pointing to `$GOPATH/src/github.com/gardener`,
-    - Clone the [latest MCM code](https://github.com/gardener/machine-controller-manager)
+    - Clone the [latest MCM code](https://github.com/xuanson2406/machine-controller-manager)
         ```bash
         git clone git@github.com:gardener/machine-controller-manager.git
         ```

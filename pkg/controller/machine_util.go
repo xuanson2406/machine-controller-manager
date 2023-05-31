@@ -25,16 +25,16 @@ package controller
 import (
 	"encoding/json"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/validation"
-	"github.com/gardener/machine-controller-manager/pkg/util/nodeops"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/validation"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/nodeops"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
 
-	machineapi "github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	v1alpha1client "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
-	v1alpha1listers "github.com/gardener/machine-controller-manager/pkg/client/listers/machine/v1alpha1"
+	machineapi "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	v1alpha1client "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
+	v1alpha1listers "github.com/xuanson2406/machine-controller-manager/pkg/client/listers/machine/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	errorsutil "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/util/retry"
@@ -57,7 +57,8 @@ var (
 )
 
 // TODO: use client library instead when it starts to support update retries
-//       see https://github.com/kubernetes/kubernetes/issues/21479
+//
+//	see https://github.com/kubernetes/kubernetes/issues/21479
 type updateMachineFunc func(machine *v1alpha1.Machine) error
 
 // UpdateMachineWithRetries updates a machine with given applyUpdate function. Note that machine not found error is ignored.

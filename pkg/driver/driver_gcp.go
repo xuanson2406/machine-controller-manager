@@ -34,8 +34,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/metrics"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/metrics"
 )
 
 const (
@@ -386,12 +386,12 @@ func (d *GCPDriver) GetVolNames(specs []corev1.PersistentVolumeSpec) ([]string, 
 	return names, nil
 }
 
-//GetUserData return the used data whit which the VM will be booted
+// GetUserData return the used data whit which the VM will be booted
 func (d *GCPDriver) GetUserData() string {
 	return d.UserData
 }
 
-//SetUserData set the used data whit which the VM will be booted
+// SetUserData set the used data whit which the VM will be booted
 func (d *GCPDriver) SetUserData(userData string) {
 	d.UserData = userData
 }

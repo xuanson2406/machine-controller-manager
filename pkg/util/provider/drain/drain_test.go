@@ -25,8 +25,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gardener/machine-controller-manager/pkg/fakeclient"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/driver"
+	"github.com/xuanson2406/machine-controller-manager/pkg/fakeclient"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/driver"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"

@@ -19,9 +19,9 @@ limitations under the License.
 package fake
 
 import (
-	clientset "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned"
-	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
-	fakemachinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1/fake"
+	clientset "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned"
+	machinev1alpha1 "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
+	fakemachinev1alpha1 "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

@@ -38,11 +38,11 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	machineapi "github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/validation"
-	"github.com/gardener/machine-controller-manager/pkg/driver"
-	utiltime "github.com/gardener/machine-controller-manager/pkg/util/time"
+	machineapi "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/validation"
+	"github.com/xuanson2406/machine-controller-manager/pkg/driver"
+	utiltime "github.com/xuanson2406/machine-controller-manager/pkg/util/time"
 )
 
 const (
@@ -57,8 +57,8 @@ const (
 )
 
 /*
-	SECTION
-	Machine controller - Machine add, update, delete watches
+SECTION
+Machine controller - Machine add, update, delete watches
 */
 func (c *controller) addMachine(obj interface{}) {
 	klog.V(4).Infof("Adding machine object")
@@ -235,8 +235,8 @@ func (c *controller) reconcileClusterMachine(machine *v1alpha1.Machine) error {
 }
 
 /*
-	SECTION
-	Machine controller - nodeToMachine
+SECTION
+Machine controller - nodeToMachine
 */
 func (c *controller) addNodeToMachine(obj interface{}) {
 	node := obj.(*corev1.Node)
@@ -1008,8 +1008,8 @@ func (c *controller) deleteMachineFinalizers(machine *v1alpha1.Machine) {
 }
 
 /*
-	SECTION
-	Helper Functions
+SECTION
+Helper Functions
 */
 func (c *controller) isHealthy(machine *v1alpha1.Machine) bool {
 	numOfConditions := len(machine.Status.Conditions)

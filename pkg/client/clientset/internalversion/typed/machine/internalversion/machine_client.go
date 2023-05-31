@@ -19,7 +19,7 @@ limitations under the License.
 package internalversion
 
 import (
-	"github.com/gardener/machine-controller-manager/pkg/client/clientset/internalversion/scheme"
+	"github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/internalversion/scheme"
 	rest "k8s.io/client-go/rest"
 )
 

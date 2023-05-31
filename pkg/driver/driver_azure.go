@@ -26,10 +26,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	v1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
+	v1alpha1 "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/metrics"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
@@ -383,12 +383,12 @@ func (d *AzureDriver) GetVMs(machineID string) (result VMs, err error) {
 	return
 }
 
-//GetUserData return the user data with which the VM will be booted
+// GetUserData return the user data with which the VM will be booted
 func (d *AzureDriver) GetUserData() string {
 	return d.UserData
 }
 
-//SetUserData set the used data whit which the VM will be booted
+// SetUserData set the used data whit which the VM will be booted
 func (d *AzureDriver) SetUserData(userData string) {
 	d.UserData = userData
 }

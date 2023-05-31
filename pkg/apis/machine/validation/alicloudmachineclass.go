@@ -19,11 +19,12 @@ package validation
 
 import (
 	"fmt"
-	utilvalidation "k8s.io/apimachinery/pkg/util/validation"
 	"regexp"
 	"strings"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine"
+	utilvalidation "k8s.io/apimachinery/pkg/util/validation"
+
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
 	apivalidation "k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
@@ -68,7 +69,6 @@ func validateAlicloudMachineClassSpec(spec *machine.AlicloudMachineClassSpec, fl
 
 	const dataDiskNameFmt string = `[a-zA-Z][a-zA-Z0-9\.\-_:]+`
 	var dataDiskNameRegexp = regexp.MustCompile("^" + dataDiskNameFmt + "$")
-
 
 	if spec.DataDisks != nil {
 		names := map[string]int{}

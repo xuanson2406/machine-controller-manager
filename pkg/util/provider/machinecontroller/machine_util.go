@@ -28,19 +28,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"net/url"
 	"strings"
 	"time"
 
-	machineapi "github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/util/nodeops"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/drain"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/driver"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/machinecodes/codes"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/machinecodes/status"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/machineutils"
-	utilstrings "github.com/gardener/machine-controller-manager/pkg/util/strings"
-	utiltime "github.com/gardener/machine-controller-manager/pkg/util/time"
+	"github.com/xuanson2406/go-vcloud-director-fptcloud/v2/govcd"
+	machineapi "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/nodeops"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/drain"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/driver"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machinecodes/codes"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machinecodes/status"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machineutils"
+	utilstrings "github.com/xuanson2406/machine-controller-manager/pkg/util/strings"
+	utiltime "github.com/xuanson2406/machine-controller-manager/pkg/util/time"
 
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
@@ -57,7 +59,8 @@ var (
 )
 
 // TODO: use client library instead when it starts to support update retries
-//       see https://github.com/kubernetes/kubernetes/issues/21479
+//
+//	see https://github.com/kubernetes/kubernetes/issues/21479
 type updateMachineFunc func(machine *v1alpha1.Machine) error
 
 /*
@@ -687,6 +690,16 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 			}
 			objectRequiresUpdate = true
 		} else {
+			if !c.rebooted {
+				klog.V(4).Infof("Machine %s is not healthy --> rebooting machine!", machine.Name)
+				err := c.RebootVM(clone)
+				if err != nil {
+					klog.V(4).Infof("Machine %s rebooted failed - will retry: [%v]", machine.Name, err.Error())
+					c.enqueueMachineAfter(machine, sleepTime)
+				}
+				c.rebooted = true
+				c.enqueueMachineAfter(machine, sleepTime)
+			}
 			// If timeout has not occurred, re-enqueue the machine
 			// after a specified sleep time
 			c.enqueueMachineAfter(machine, sleepTime)
@@ -708,6 +721,121 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 	}
 
 	return machineutils.LongRetry, nil
+}
+func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
+	credential := make(map[string]string)
+	script := `#!/bin/bash
+sudo reboot`
+	machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
+	if err != nil {
+		klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machine.Spec.Class.Name, err)
+		return err
+	}
+	secrets, err := c.getSecret(machineClass.SecretRef, machineClass.Name)
+	if err != nil {
+		return err
+	}
+	credential["userName"] = string(secrets.Data["fptcloudUser"])
+	credential["password"] = string(secrets.Data["fptcloudPassword"])
+	credential["orgName"] = string(secrets.Data["fptcloudOrg"])
+	credential["vcdHref"] = string(secrets.Data["fptcloudHref"])
+	credential["vdcName"] = string(secrets.Data["fptcloudVDC"])
+	client, err := GetClientForController(credential)
+	if err != nil {
+		return err
+	}
+	vdc, _ := GetVdcByName(client, credential["orgName"], credential["vdcName"])
+	vapp := vdc.GetVappList()
+	vm := &govcd.VM{}
+	for _, i := range vapp {
+		if strings.Contains(i.Name, machine.Name) {
+			VAPP, _ := vdc.GetVAppByName(i.Name, false)
+			vm, _ = VAPP.GetVMById(VAPP.VApp.Children.VM[0].ID, false)
+			break
+		}
+	}
+	unDeployTask, err := vm.Undeploy()
+	if err != nil {
+		if strings.Contains(err.Error(), "API Error") {
+			time.Sleep(3 * time.Second)
+		} else {
+			return fmt.Errorf("unable to power off vm %s: [%v]", machine.Name, err)
+		}
+	}
+	err = unDeployTask.WaitTaskCompletion()
+	if err != nil {
+		return fmt.Errorf("unable to wait for power of vm %s completion: [%v]", machine.Name, err)
+	}
+	time.Sleep(2 * time.Second)
+	klog.V(4).Infof("VM %s is power off", machine.Name)
+	taskCustomizeVM, err := vm.Customize(vm.VM.GuestCustomizationSection.ComputerName, script, false)
+	if err != nil {
+		if strings.Contains(err.Error(), "API Error") {
+			time.Sleep(3 * time.Second)
+
+		} else {
+			return fmt.Errorf("unable to customize VM %s with script: [%v]", machine.Name, err)
+		}
+	}
+	err = taskCustomizeVM.WaitTaskCompletion()
+	if err != nil {
+		return fmt.Errorf("unable to wait for task customize VM %s with script: [%v]", machine.Name, err)
+	}
+	for {
+		err = vm.PowerOnAndForceCustomization()
+		if err != nil {
+			if strings.Contains(err.Error(), "API Error") {
+				time.Sleep(3 * time.Second)
+				continue
+			} else {
+				return fmt.Errorf("unable to power on vm %s with recustomizing option: [%v]", machine.Name, err)
+			}
+		}
+		klog.V(4).Infof("VM %s is power on", machine.Name)
+		break
+	}
+
+	return nil
+}
+func GetClientForController(credential map[string]string) (*govcd.VCDClient, error) {
+	// if one accidentially copies a newline character into the token, remove it!
+	if strings.Contains(credential["userName"], "\n") {
+		klog.V(4).Infof("Your vCD username contains a newline character. I will remove it for you but you should consider to remove it.")
+		credential["userName"] = strings.Replace(credential["userName"], "\n", "", -1)
+	}
+	if strings.Contains(credential["password"], "\n") {
+		klog.V(4).Infof("Your vCD password contains a newline character. I will remove it for you but you should consider to remove it.")
+		credential["password"] = strings.Replace(credential["password"], "\n", "", -1)
+	}
+	client, err := Login(credential["userName"], credential["password"], credential["orgName"], credential["vcdHref"])
+
+	if err != nil {
+		klog.V(4).Infof(err.Error())
+	}
+	return client, err
+}
+func Login(User string, Password string, Org string, HREF string) (*govcd.VCDClient, error) {
+	u, err := url.ParseRequestURI(HREF)
+	if err != nil {
+		return nil, fmt.Errorf("unable to pass url: %s", err)
+	}
+	vcdclient := govcd.NewVCDClient(*u, true)
+	err = vcdclient.Authenticate(User, Password, Org)
+	if err != nil {
+		return nil, fmt.Errorf("unable to authenticate: %s", err)
+	}
+	return vcdclient, nil
+}
+func GetVdcByName(client *govcd.VCDClient, Org string, VDC string) (*govcd.Vdc, error) {
+	org, err := client.GetOrgByName(Org)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get org %s by name: [%v]", Org, err)
+	}
+	vdc, err := org.GetVDCByName(VDC, false)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get vdc %s by name: [%v]", VDC, err)
+	}
+	return vdc, err
 }
 
 /*
@@ -758,8 +886,8 @@ func (c *controller) deleteMachineFinalizers(machine *v1alpha1.Machine) (machine
 }
 
 /*
-	SECTION
-	Helper Functions
+SECTION
+Helper Functions
 */
 func (c *controller) isHealthy(machine *v1alpha1.Machine) bool {
 	numOfConditions := len(machine.Status.Conditions)
@@ -883,7 +1011,7 @@ func (c *controller) getVMStatus(getMachineStatusRequest *driver.GetMachineStatu
 		},
 		// Let the clone.Status.CurrentStatus (LastUpdateTime) be as it was before.
 		// This helps while computing when the drain timeout to determine if force deletion is to be triggered.
-		// Ref - https://github.com/gardener/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
+		// Ref - https://github.com/xuanson2406/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
 		getMachineStatusRequest.Machine.Status.CurrentStatus,
 		getMachineStatusRequest.Machine.Status.LastKnownState,
 	)
@@ -1043,7 +1171,7 @@ func (c *controller) drainNode(deleteMachineRequest *driver.DeleteMachineRequest
 		},
 		// Let the clone.Status.CurrentStatus (LastUpdateTime) be as it was before.
 		// This helps while computing when the drain timeout to determine if force deletion is to be triggered.
-		// Ref - https://github.com/gardener/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
+		// Ref - https://github.com/xuanson2406/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
 		machine.Status.CurrentStatus,
 		machine.Status.LastKnownState,
 	)
@@ -1109,7 +1237,7 @@ func (c *controller) deleteVM(deleteMachineRequest *driver.DeleteMachineRequest)
 		},
 		// Let the clone.Status.CurrentStatus (LastUpdateTime) be as it was before.
 		// This helps while computing when the drain timeout to determine if force deletion is to be triggered.
-		// Ref - https://github.com/gardener/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
+		// Ref - https://github.com/xuanson2406/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
 		machine.Status.CurrentStatus,
 		lastKnownState,
 	)
@@ -1160,7 +1288,7 @@ func (c *controller) deleteNodeObject(machine *v1alpha1.Machine) (machineutils.R
 		},
 		// Let the clone.Status.CurrentStatus (LastUpdateTime) be as it was before.
 		// This helps while computing when the drain timeout to determine if force deletion is to be triggered.
-		// Ref - https://github.com/gardener/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
+		// Ref - https://github.com/xuanson2406/machine-controller-manager/blob/rel-v0.34.0/pkg/util/provider/machinecontroller/machine_util.go#L872
 		machine.Status.CurrentStatus,
 		machine.Status.LastKnownState,
 	)

@@ -23,9 +23,9 @@ import (
 	sync "sync"
 	time "time"
 
-	versioned "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned"
-	internalinterfaces "github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions/internalinterfaces"
-	machine "github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions/machine"
+	versioned "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned"
+	internalinterfaces "github.com/xuanson2406/machine-controller-manager/pkg/client/informers/externalversions/internalinterfaces"
+	machine "github.com/xuanson2406/machine-controller-manager/pkg/client/informers/externalversions/machine"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

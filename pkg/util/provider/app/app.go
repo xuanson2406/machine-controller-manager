@@ -32,19 +32,19 @@ import (
 	"strconv"
 	"time"
 
-	machinescheme "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
-	machineinformers "github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions"
-	coreclientbuilder "github.com/gardener/machine-controller-manager/pkg/util/clientbuilder/core"
-	machineclientbuilder "github.com/gardener/machine-controller-manager/pkg/util/clientbuilder/machine"
-	machinecontroller "github.com/gardener/machine-controller-manager/pkg/util/provider/machinecontroller"
+	machinescheme "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/scheme"
+	machineinformers "github.com/xuanson2406/machine-controller-manager/pkg/client/informers/externalversions"
+	coreclientbuilder "github.com/xuanson2406/machine-controller-manager/pkg/util/clientbuilder/core"
+	machineclientbuilder "github.com/xuanson2406/machine-controller-manager/pkg/util/clientbuilder/machine"
+	machinecontroller "github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machinecontroller"
 	coreinformers "k8s.io/client-go/informers"
 	kubescheme "k8s.io/client-go/kubernetes/scheme"
 
-	"github.com/gardener/machine-controller-manager/pkg/handlers"
-	"github.com/gardener/machine-controller-manager/pkg/util/configz"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/app/options"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/driver"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/xuanson2406/machine-controller-manager/pkg/handlers"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/configz"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/app/options"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/driver"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -288,7 +288,9 @@ func StartControllers(s *options.MCServer,
 }
 
 // TODO: In general, any controller checking this needs to be dynamic so
-//  users don't have to restart their controller manager if they change the apiserver.
+//
+//	users don't have to restart their controller manager if they change the apiserver.
+//
 // Until we get there, the structure here needs to be exposed for the construction of a proper ControllerContext.
 func getAvailableResources(clientBuilder coreclientbuilder.ClientBuilder) (map[schema.GroupVersionResource]bool, error) {
 	var discoveryClient discovery.DiscoveryInterface

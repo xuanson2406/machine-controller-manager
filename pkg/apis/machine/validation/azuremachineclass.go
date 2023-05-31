@@ -23,7 +23,7 @@ import (
 
 	utilvalidation "k8s.io/apimachinery/pkg/util/validation"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
 
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
