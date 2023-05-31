@@ -583,6 +583,7 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 				// Machine rejoined the cluster after a healthcheck
 				description = fmt.Sprintf("Machine %s successfully re-joined the cluster", clone.Name)
 				lastOperationType = v1alpha1.MachineOperationHealthCheck
+				c.rebooted = false
 			}
 			klog.V(2).Info(description)
 
@@ -690,7 +691,7 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 			}
 			objectRequiresUpdate = true
 		} else {
-			if !c.rebooted {
+			if !c.rebooted && machine.Status.CurrentStatus.Phase == v1alpha1.MachineUnknown {
 				klog.V(4).Infof("Machine %s is not healthy --> rebooting machine!", machine.Name)
 				err := c.RebootVM(clone)
 				if err != nil {
