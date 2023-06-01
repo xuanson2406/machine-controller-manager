@@ -755,7 +755,8 @@ sudo reboot`
 			break
 		}
 	}
-	unDeployTask, err := vm.Undeploy()
+	klog.V(4).Infof("Poweroff vm %s", vm.VM.Name)
+	unDeployTask, err := vm.PowerOff()
 	if err != nil {
 		if strings.Contains(err.Error(), "API Error") {
 			time.Sleep(3 * time.Second)
