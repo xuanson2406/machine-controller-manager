@@ -755,8 +755,7 @@ sudo reboot`
 			break
 		}
 	}
-	klog.V(4).Infof("Poweroff vm %s", vm.VM.Name)
-	unDeployTask, err := vm.PowerOff()
+	unDeployTask, err := vm.Undeploy()
 	if err != nil {
 		if strings.Contains(err.Error(), "API Error") {
 			time.Sleep(3 * time.Second)
@@ -764,11 +763,14 @@ sudo reboot`
 			return fmt.Errorf("unable to power off vm %s: [%v]", machine.Name, err)
 		}
 	}
-	err = unDeployTask.WaitTaskCompletion()
-	if err != nil {
-		return fmt.Errorf("unable to wait for power of vm %s completion: [%v]", machine.Name, err)
+	if unDeployTask.Task != nil {
+		err = unDeployTask.WaitTaskCompletion()
+		if err != nil {
+			return fmt.Errorf("unable to wait for power of vm %s completion: [%v]", machine.Name, err)
+		}
+		time.Sleep(2 * time.Second)
 	}
-	time.Sleep(2 * time.Second)
+
 	klog.V(4).Infof("VM %s is power off", machine.Name)
 	taskCustomizeVM, err := vm.Customize(vm.VM.GuestCustomizationSection.ComputerName, script, false)
 	if err != nil {
