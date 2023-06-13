@@ -583,7 +583,7 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 				// Machine rejoined the cluster after a healthcheck
 				description = fmt.Sprintf("Machine %s successfully re-joined the cluster", clone.Name)
 				lastOperationType = v1alpha1.MachineOperationHealthCheck
-				c.rebooted = false
+				// c.rebooted = false
 			}
 			klog.V(2).Info(description)
 
@@ -691,14 +691,17 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 			}
 			objectRequiresUpdate = true
 		} else {
-			if !c.rebooted && machine.Status.CurrentStatus.Phase == v1alpha1.MachineUnknown {
+			timeOutReboot := 3 * time.Minute
+			Reboot := metav1.Now().Add(-timeOutReboot).Sub(machine.Status.CurrentStatus.LastUpdateTime.Time)
+			if machine.Status.CurrentStatus.Phase == v1alpha1.MachineUnknown && Reboot > 0 {
 				klog.V(4).Infof("Machine %s is not healthy --> rebooting machine!", machine.Name)
 				err := c.RebootVM(clone)
 				if err != nil {
 					klog.V(4).Infof("Machine %s rebooted failed - will retry: [%v]", machine.Name, err.Error())
 					c.enqueueMachineAfter(machine, sleepTime)
 				}
-				c.rebooted = true
+				time.Sleep(2 * time.Minute)
+				// c.rebooted = true
 				c.enqueueMachineAfter(machine, sleepTime)
 			}
 			// If timeout has not occurred, re-enqueue the machine
@@ -726,7 +729,8 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 	credential := make(map[string]string)
 	script := `#!/bin/bash
-sudo reboot`
+sudo reboot
+swapoff -a`
 	machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
 	if err != nil {
 		klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machine.Spec.Class.Name, err)
