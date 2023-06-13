@@ -19,9 +19,6 @@
 package v1alpha1
 
 import (
-	"encoding/json"
-	"fmt"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -59,20 +56,4 @@ type MachineClassList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []MachineClass `json:"items"`
-}
-type ProviderSpec struct {
-	VGPU string `json:"vGPU,omitempty"`
-}
-
-func DecodeProviderSpecFromMachineClass(machineClass *MachineClass) (*ProviderSpec, error) {
-	var providerSpec *ProviderSpec
-	if machineClass == nil {
-		return nil, fmt.Errorf("MachineClass provided is nil")
-	}
-	jsonErr := json.Unmarshal(machineClass.ProviderSpec.Raw, &providerSpec)
-	if jsonErr != nil {
-		return nil, fmt.Errorf("failed to parse JSON data provided as ProviderSpec: %v", jsonErr)
-	}
-	return providerSpec, nil
-
 }

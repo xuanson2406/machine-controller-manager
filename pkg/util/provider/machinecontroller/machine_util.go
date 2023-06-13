@@ -598,45 +598,51 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 					if err != nil {
 						klog.Warning(err)
 					}
-					time.Sleep(3 * time.Minute)
+
 					podList, err := c.targetCoreClient.CoreV1().Pods("gpu-operator").List(metav1.ListOptions{})
 					if err != nil {
 						klog.Warning(err)
 					}
-					Pod := &v1.Pod{}
+					Pod := v1.Pod{}
 					for _, p := range podList.Items {
 						if p.Spec.NodeName == clone.Name && strings.Contains(p.Name, "nvidia-operator-validator") {
-							Pod = &p
+							Pod = p
 							break
 						}
 					}
-					podLog := c.targetCoreClient.CoreV1().Pods("gpu-operator").GetLogs(Pod.Name,
-						&v1.PodLogOptions{Container: "nvidia-operator-validator"})
-					log, err := podLog.Stream()
-					if err != nil {
-						klog.Warning(err)
-					}
-					defer log.Close()
-					buf := new(bytes.Buffer)
-					_, err = io.Copy(buf, log)
-					if err != nil {
-						klog.Warning(err)
-					}
-					logOutput := buf.String()
-					// timeOut := 10 * time.Minute
-					if strings.Contains(logOutput, "all validations are successful") {
-						var updatedTaints []corev1.Taint
-						for _, taint := range node.Spec.Taints {
-							if taint.Key != "nvidia.com/gpu" {
-								updatedTaints = append(updatedTaints, taint)
-							}
-						}
-						node.Spec.Taints = updatedTaints
-						_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
+					i := 0
+					for ; i < 5; i++ {
+						podLog := c.targetCoreClient.CoreV1().Pods("gpu-operator").GetLogs(Pod.Name,
+							&v1.PodLogOptions{Container: "nvidia-operator-validator"})
+						log, err := podLog.Stream()
 						if err != nil {
 							klog.Warning(err)
 						}
-					} else {
+						defer log.Close()
+						buf := new(bytes.Buffer)
+						_, err = io.Copy(buf, log)
+						if err != nil {
+							klog.Warning(err)
+						}
+						logOutput := buf.String()
+						if strings.Contains(logOutput, "all validations are successful") {
+							var updatedTaints []corev1.Taint
+							for _, taint := range node.Spec.Taints {
+								if taint.Key != "nvidia.com/gpu" {
+									updatedTaints = append(updatedTaints, taint)
+								}
+							}
+							node.Spec.Taints = updatedTaints
+							_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
+							if err != nil {
+								klog.Warning(err)
+							}
+							break
+						} else {
+							time.Sleep(1 * time.Minute)
+						}
+					}
+					if i == 5 {
 						klog.Warningf("nvidia-operator-validator install toolkit failed in node [%s]! - delete this machine", clone.Name)
 						description = fmt.Sprintf(
 							"Machine %s failed to install gpu validator", clone.Name)
