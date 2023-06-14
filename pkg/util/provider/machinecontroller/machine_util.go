@@ -729,8 +729,7 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 	credential := make(map[string]string)
 	script := `#!/bin/bash
-sudo reboot
-swapoff -a`
+reboot`
 	machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
 	if err != nil {
 		klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machine.Spec.Class.Name, err)
