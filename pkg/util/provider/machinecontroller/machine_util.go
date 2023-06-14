@@ -728,8 +728,8 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 }
 func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 	credential := make(map[string]string)
-	script := `#!/bin/bash
-reboot`
+	// 	script := `#!/bin/bash
+	// reboot`
 	machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
 	if err != nil {
 		klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machine.Spec.Class.Name, err)
@@ -750,57 +750,98 @@ reboot`
 	}
 	vdc, _ := GetVdcByName(client, credential["orgName"], credential["vdcName"])
 	vapp := vdc.GetVappList()
-	vm := &govcd.VM{}
+	// vm := &govcd.VM{}
 	for _, i := range vapp {
 		if strings.Contains(i.Name, machine.Name) {
 			VAPP, _ := vdc.GetVAppByName(i.Name, false)
-			vm, _ = VAPP.GetVMById(VAPP.VApp.Children.VM[0].ID, false)
+			vm, _ := VAPP.GetVMById(VAPP.VApp.Children.VM[0].ID, false)
+			if vm.VM.Status != 4 {
+				task, err := vm.PowerOff()
+				if err != nil {
+					if strings.Contains(err.Error(), "API Error") {
+						time.Sleep(3 * time.Second)
+					} else {
+						return fmt.Errorf("unable to power off vm [%v]", err)
+					}
+				}
+
+				err = task.WaitTaskCompletion()
+				if err != nil {
+					return fmt.Errorf("unable to wait for power of vm completion: [%v]", err)
+				}
+				for {
+					err = vm.PowerOnAndForceCustomization()
+					if err != nil {
+						if strings.Contains(err.Error(), "API Error") {
+							time.Sleep(3 * time.Second)
+							continue
+						} else {
+							return fmt.Errorf("unable to power on vm %s with recustomizing option: [%v]", machine.Name, err)
+						}
+					}
+					klog.V(4).Infof("VM %s is power on", machine.Name)
+					break
+				}
+				break
+			}
+			task, err := VAPP.Reboot()
+			if err != nil {
+				if strings.Contains(err.Error(), "API Error") {
+					time.Sleep(3 * time.Second)
+				} else {
+					return fmt.Errorf("unable to reboot vm [%v]", err)
+				}
+			}
+			err = task.WaitTaskCompletion()
+			if err != nil {
+				return fmt.Errorf("unable to wait for reboot vm completion: [%v]", err)
+			}
 			break
 		}
 	}
-	unDeployTask, err := vm.Undeploy()
-	if err != nil {
-		if strings.Contains(err.Error(), "API Error") {
-			time.Sleep(3 * time.Second)
-		} else {
-			return fmt.Errorf("unable to power off vm %s: [%v]", machine.Name, err)
-		}
-	}
-	if unDeployTask.Task != nil {
-		err = unDeployTask.WaitTaskCompletion()
-		if err != nil {
-			return fmt.Errorf("unable to wait for power of vm %s completion: [%v]", machine.Name, err)
-		}
-		time.Sleep(2 * time.Second)
-	}
+	// unDeployTask, err := vm.Undeploy()
+	// if err != nil {
+	// 	if strings.Contains(err.Error(), "API Error") {
+	// 		time.Sleep(3 * time.Second)
+	// 	} else {
+	// 		return fmt.Errorf("unable to power off vm %s: [%v]", machine.Name, err)
+	// 	}
+	// }
+	// if unDeployTask.Task != nil {
+	// 	err = unDeployTask.WaitTaskCompletion()
+	// 	if err != nil {
+	// 		return fmt.Errorf("unable to wait for power of vm %s completion: [%v]", machine.Name, err)
+	// 	}
+	// 	time.Sleep(2 * time.Second)
+	// }
 
-	klog.V(4).Infof("VM %s is power off", machine.Name)
-	taskCustomizeVM, err := vm.Customize(vm.VM.GuestCustomizationSection.ComputerName, script, false)
-	if err != nil {
-		if strings.Contains(err.Error(), "API Error") {
-			time.Sleep(3 * time.Second)
+	// klog.V(4).Infof("VM %s is power off", machine.Name)
+	// taskCustomizeVM, err := vm.Customize(vm.VM.GuestCustomizationSection.ComputerName, script, false)
+	// if err != nil {
+	// 	if strings.Contains(err.Error(), "API Error") {
+	// 		time.Sleep(3 * time.Second)
 
-		} else {
-			return fmt.Errorf("unable to customize VM %s with script: [%v]", machine.Name, err)
-		}
-	}
-	err = taskCustomizeVM.WaitTaskCompletion()
-	if err != nil {
-		return fmt.Errorf("unable to wait for task customize VM %s with script: [%v]", machine.Name, err)
-	}
-	for {
-		err = vm.PowerOnAndForceCustomization()
-		if err != nil {
-			if strings.Contains(err.Error(), "API Error") {
-				time.Sleep(3 * time.Second)
-				continue
-			} else {
-				return fmt.Errorf("unable to power on vm %s with recustomizing option: [%v]", machine.Name, err)
-			}
-		}
-		klog.V(4).Infof("VM %s is power on", machine.Name)
-		break
-	}
+	// 	} else {
+	// 		return fmt.Errorf("unable to customize VM %s with script: [%v]", machine.Name, err)
+	// 	}
+	// }
+	// err = taskCustomizeVM.WaitTaskCompletion()
+	// if err != nil {
+	// 	return fmt.Errorf("unable to wait for task customize VM %s with script: [%v]", machine.Name, err)
+	// }
+	// for {
+	// 	err = vm.PowerOnAndForceCustomization()
+	// 	if err != nil {
+	// 		if strings.Contains(err.Error(), "API Error") {
+	// 			time.Sleep(3 * time.Second)
+	// 			continue
+	// 		} else {
+	// 			return fmt.Errorf("unable to power on vm %s with recustomizing option: [%v]", machine.Name, err)
+	// 		}
+	// 	}
+	// 	klog.V(4).Infof("VM %s is power on", machine.Name)
+	// 	break
+	// }
 
 	return nil
 }
