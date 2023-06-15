@@ -598,12 +598,12 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 				if err != nil {
 					panic(err.Error())
 				}
-				namespaceGPU, err := clientset.CoreV1().Namespaces().Get("gpu-operator", metav1.GetOptions{})
+				_, err = clientset.CoreV1().Namespaces().Get("gpu-operator", metav1.GetOptions{})
 				if err != nil {
 					klog.Warning(err)
 				}
-				if namespaceGPU != nil {
-					node, err := c.targetCoreClient.CoreV1().Nodes().Get(clone.Name, metav1.GetOptions{})
+				if !strings.Contains(err.Error(), "not found") {
+					node, err := clientset.CoreV1().Nodes().Get(clone.Name, metav1.GetOptions{})
 					if err != nil {
 						klog.Warning(err)
 					}
@@ -617,7 +617,7 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 						klog.Warning(err)
 					}
 
-					podList, err := c.targetCoreClient.CoreV1().Pods("gpu-operator").List(metav1.ListOptions{})
+					podList, err := clientset.CoreV1().Pods("gpu-operator").List(metav1.ListOptions{})
 					if err != nil {
 						klog.Warning(err)
 					}
@@ -630,7 +630,7 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 					}
 					i := 0
 					for ; i < 5; i++ {
-						podLog := c.targetCoreClient.CoreV1().Pods("gpu-operator").GetLogs(Pod.Name,
+						podLog := clientset.CoreV1().Pods("gpu-operator").GetLogs(Pod.Name,
 							&v1.PodLogOptions{Container: "nvidia-operator-validator"})
 						log, err := podLog.Stream()
 						if err != nil {
