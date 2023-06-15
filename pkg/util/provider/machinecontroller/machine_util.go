@@ -700,7 +700,7 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 					klog.V(4).Infof("Machine %s rebooted failed - will retry: [%v]", machine.Name, err.Error())
 					c.enqueueMachineAfter(machine, sleepTime)
 				}
-				time.Sleep(2 * time.Minute)
+				time.Sleep(3 * time.Minute)
 				// c.rebooted = true
 				c.enqueueMachineAfter(machine, sleepTime)
 			}
