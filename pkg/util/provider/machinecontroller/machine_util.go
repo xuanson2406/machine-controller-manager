@@ -51,6 +51,8 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
 )
 
@@ -580,7 +582,23 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 				if err != nil {
 					klog.Warning(err)
 				}
-				namespaceGPU, err := c.targetCoreClient.CoreV1().Namespaces().Get("gpu-operator", metav1.GetOptions{})
+
+				kubecfg, err := c.controlCoreClient.CoreV1().Secrets(c.namespace).Get("kubecfg", metav1.GetOptions{})
+				if err != nil {
+					klog.Warning(err)
+				}
+				shootConfig := string(kubecfg.Data["kubeconfig"])
+				config, err := clientcmd.RESTConfigFromKubeConfig([]byte(shootConfig))
+				if err != nil {
+					panic(err.Error())
+				}
+
+				// Create a clientset using the Config object
+				clientset, err := kubernetes.NewForConfig(config)
+				if err != nil {
+					panic(err.Error())
+				}
+				namespaceGPU, err := clientset.CoreV1().Namespaces().Get("gpu-operator", metav1.GetOptions{})
 				if err != nil {
 					klog.Warning(err)
 				}
