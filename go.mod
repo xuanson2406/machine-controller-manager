@@ -8,37 +8,40 @@ require (
 	github.com/Azure/go-autorest/autorest/adal v0.8.2
 	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
+	github.com/Masterminds/semver v1.5.0
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20180828111155-cad214d7d71f
 	github.com/aws/aws-sdk-go v1.23.13
+	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
+	github.com/go-git/go-git/v5 v5.7.0
 	github.com/go-openapi/spec v0.19.2
-	github.com/golang/groupcache v0.0.0-20180513044358-24b0969c4cb7 // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gophercloud/gophercloud v0.7.0
 	github.com/gophercloud/utils v0.0.0-20200204043447-9864b6f1f12f
-	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/onsi/ginkgo v1.10.1
 	github.com/onsi/gomega v1.7.0
 	github.com/packethost/packngo v0.0.0-20181217122008-b3b45f1b4979
-	github.com/prometheus/client_golang v0.9.2
+	github.com/prometheus/client_golang v1.14.0
 	github.com/satori/go.uuid v1.2.0 // indirect
-	github.com/spf13/pflag v1.0.3
+	github.com/spf13/pflag v1.0.5
 	github.com/xuanson2406/go-vcloud-director-fptcloud/v2 v2.1.5
-	golang.org/x/lint v0.0.0-20190313153728-d0100b6bd8b3
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	google.golang.org/api v0.4.0
-	gopkg.in/inf.v0 v0.9.1 // indirect
-	k8s.io/api v0.0.0-20190918155943-95b840bb6a1f
-	k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655
-	k8s.io/apiserver v0.0.0-20190918160949-bfa5e2e684ad
-	k8s.io/client-go v0.0.0-20190918160344-1fbdaa4c8d90
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
+	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b
+	google.golang.org/api v0.30.0
+	k8s.io/api v0.27.3
+	k8s.io/apiextensions-apiserver v0.27.3
+	k8s.io/apimachinery v0.27.3
+	k8s.io/apiserver v0.27.3
+	k8s.io/client-go v0.27.3
 	k8s.io/cluster-bootstrap v0.0.0-20190918163108-da9fdfce26bb
-	k8s.io/code-generator v0.0.0-20190912054826-cd179ad6a269
-	k8s.io/component-base v0.0.0-20190918160511-547f6c5d7090
+	k8s.io/code-generator v0.27.3
+	k8s.io/component-base v0.27.3
 	k8s.io/klog v0.4.0
-	k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf
-	k8s.io/utils v0.0.0-20190801114015-581e00157fb1
+	k8s.io/klog/v2 v2.100.1
+	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f
+	k8s.io/utils v0.0.0-20230209194617-a36077c30491
+	sigs.k8s.io/yaml v1.3.0
 )
 
 replace (
