@@ -609,11 +609,12 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 					if err != nil {
 						panic(err.Error())
 					}
-					_, err = clientset.CoreV1().Namespaces().Get("gpu-operator", metav1.GetOptions{})
+					namespace, err := clientset.CoreV1().Namespaces().Get("gpu-operator", metav1.GetOptions{})
 					if err != nil {
 						klog.Warning(err)
 					}
-					if !strings.Contains(err.Error(), "not found") {
+
+					if namespace.Name == "gpu-operator" {
 						node, err := clientset.CoreV1().Nodes().Get(clone.Name, metav1.GetOptions{})
 						if err != nil {
 							klog.Warning(err)
