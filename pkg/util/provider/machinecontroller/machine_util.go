@@ -670,9 +670,8 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 									}
 									break
 								}
-							} else {
-								time.Sleep(1 * time.Minute)
 							}
+							time.Sleep(1 * time.Minute)
 						}
 						if i == 5 {
 							klog.Warningf("nvidia-operator-validator install toolkit failed in node [%s]! - delete this machine", clone.Name)
