@@ -582,118 +582,107 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 				if err != nil {
 					klog.Warning(err)
 				}
-				if clone.Status.LastOperation.Type == v1alpha1.MachineOperationCreate &&
-					clone.Status.LastOperation.State != v1alpha1.MachineStateSuccessful {
-					// When machine creation went through
-					description = fmt.Sprintf("Machine %s successfully joined the cluster", clone.Name)
-					lastOperationType = v1alpha1.MachineOperationCreate
 
-					// Delete the bootstrap token
-					err = c.deleteBootstrapToken(clone.Name)
+				kubecfg, err := c.controlCoreClient.CoreV1().Secrets(c.namespace).Get("kubecfg", metav1.GetOptions{})
+				if err != nil {
+					klog.Warning(err)
+				}
+				shootConfig := string(kubecfg.Data["kubeconfig"])
+				config, err := clientcmd.RESTConfigFromKubeConfig([]byte(shootConfig))
+				if err != nil {
+					panic(err.Error())
+				}
+
+				// Create a clientset using the Config object
+				clientset, err := kubernetes.NewForConfig(config)
+				if err != nil {
+					panic(err.Error())
+				}
+				namespace, err := clientset.CoreV1().Namespaces().Get("gpu-operator", metav1.GetOptions{})
+				if err != nil {
+					klog.Warning(err)
+				}
+
+				if namespace.Name == "gpu-operator" {
+					node, err := clientset.CoreV1().Nodes().Get(clone.Name, metav1.GetOptions{})
+					if err != nil {
+						klog.Warning(err)
+					}
+					taints := corev1.Taint{
+						Key:    "nvidia.com/gpu",
+						Effect: corev1.TaintEffectNoSchedule,
+					}
+					node.Spec.Taints = append(node.Spec.Taints, taints)
+					_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
 					if err != nil {
 						klog.Warning(err)
 					}
 
-					kubecfg, err := c.controlCoreClient.CoreV1().Secrets(c.namespace).Get("kubecfg", metav1.GetOptions{})
+					podList, err := clientset.CoreV1().Pods("gpu-operator").List(metav1.ListOptions{})
 					if err != nil {
 						klog.Warning(err)
 					}
-					shootConfig := string(kubecfg.Data["kubeconfig"])
-					config, err := clientcmd.RESTConfigFromKubeConfig([]byte(shootConfig))
-					if err != nil {
-						panic(err.Error())
+					Pod := v1.Pod{}
+					for _, p := range podList.Items {
+						if p.Spec.NodeName == clone.Name && strings.Contains(p.Name, "nvidia-operator-validator") {
+							Pod = p
+							break
+						}
 					}
-
-					// Create a clientset using the Config object
-					clientset, err := kubernetes.NewForConfig(config)
-					if err != nil {
-						panic(err.Error())
-					}
-					namespace, err := clientset.CoreV1().Namespaces().Get("gpu-operator", metav1.GetOptions{})
-					if err != nil {
-						klog.Warning(err)
-					}
-
-					if namespace.Name == "gpu-operator" {
-						node, err := clientset.CoreV1().Nodes().Get(clone.Name, metav1.GetOptions{})
-						if err != nil {
-							klog.Warning(err)
-						}
-						taints := corev1.Taint{
-							Key:    "nvidia.com/gpu",
-							Effect: corev1.TaintEffectNoSchedule,
-						}
-						node.Spec.Taints = append(node.Spec.Taints, taints)
-						_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
-						if err != nil {
-							klog.Warning(err)
-						}
-
-						podList, err := clientset.CoreV1().Pods("gpu-operator").List(metav1.ListOptions{})
-						if err != nil {
-							klog.Warning(err)
-						}
-						Pod := v1.Pod{}
-						for _, p := range podList.Items {
-							if p.Spec.NodeName == clone.Name && strings.Contains(p.Name, "nvidia-operator-validator") {
-								Pod = p
+					i := 0
+					for ; i < 6; i++ {
+						if Pod.Status.Phase == v1.PodRunning {
+							podLog := clientset.CoreV1().Pods("gpu-operator").GetLogs(Pod.Name,
+								&v1.PodLogOptions{Container: "nvidia-operator-validator"})
+							log, err := podLog.Stream()
+							if err != nil {
+								klog.Warning(err)
+							}
+							defer log.Close()
+							buf := new(bytes.Buffer)
+							_, err = io.Copy(buf, log)
+							if err != nil {
+								klog.Warning(err)
+							}
+							logOutput := buf.String()
+							if strings.Contains(logOutput, "all validations are successful") {
+								var updatedTaints []corev1.Taint
+								for _, taint := range node.Spec.Taints {
+									if taint.Key != "nvidia.com/gpu" {
+										updatedTaints = append(updatedTaints, taint)
+									}
+								}
+								node.Spec.Taints = updatedTaints
+								_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
+								if err != nil {
+									klog.Warning(err)
+								}
 								break
 							}
 						}
-						i := 0
-						for ; i < 6; i++ {
-							if Pod.Status.Phase == v1.PodRunning {
-								podLog := clientset.CoreV1().Pods("gpu-operator").GetLogs(Pod.Name,
-									&v1.PodLogOptions{Container: "nvidia-operator-validator"})
-								log, err := podLog.Stream()
-								if err != nil {
-									klog.Warning(err)
-								}
-								defer log.Close()
-								buf := new(bytes.Buffer)
-								_, err = io.Copy(buf, log)
-								if err != nil {
-									klog.Warning(err)
-								}
-								logOutput := buf.String()
-								if strings.Contains(logOutput, "all validations are successful") {
-									var updatedTaints []corev1.Taint
-									for _, taint := range node.Spec.Taints {
-										if taint.Key != "nvidia.com/gpu" {
-											updatedTaints = append(updatedTaints, taint)
-										}
-									}
-									node.Spec.Taints = updatedTaints
-									_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
-									if err != nil {
-										klog.Warning(err)
-									}
-									break
-								}
-							}
-							time.Sleep(1 * time.Minute)
-						}
-						if i == 5 {
-							klog.Warningf("nvidia-operator-validator install toolkit failed in node [%s]! - delete this machine", clone.Name)
-							description = fmt.Sprintf(
-								"Machine %s failed to install gpu validator", clone.Name)
-							klog.Error(description)
+						time.Sleep(1 * time.Minute)
+					}
+					if i == 5 {
+						klog.Warningf("nvidia-operator-validator install toolkit failed in node [%s]! - delete this machine", clone.Name)
+						description = fmt.Sprintf(
+							"Machine %s failed to install gpu validator", clone.Name)
+						klog.Error(description)
 
-							clone.Status.LastOperation = v1alpha1.LastOperation{
-								Description:    description,
-								State:          v1alpha1.MachineStateFailed,
-								Type:           machine.Status.LastOperation.Type,
-								LastUpdateTime: metav1.Now(),
-							}
-							clone.Status.CurrentStatus = v1alpha1.CurrentStatus{
-								Phase: v1alpha1.MachineFailed,
-								//TimeoutActive:  false,
-								LastUpdateTime: metav1.Now(),
-							}
-							objectRequiresUpdate = true
+						clone.Status.LastOperation = v1alpha1.LastOperation{
+							Description:    description,
+							State:          v1alpha1.MachineStateFailed,
+							Type:           machine.Status.LastOperation.Type,
+							LastUpdateTime: metav1.Now(),
 						}
+						clone.Status.CurrentStatus = v1alpha1.CurrentStatus{
+							Phase: v1alpha1.MachineFailed,
+							//TimeoutActive:  false,
+							LastUpdateTime: metav1.Now(),
+						}
+						objectRequiresUpdate = true
 					}
 				}
+
 			} else {
 				// Machine rejoined the cluster after a healthcheck
 				description = fmt.Sprintf("Machine %s successfully re-joined the cluster", clone.Name)
