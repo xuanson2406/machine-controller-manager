@@ -630,7 +630,7 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 						}
 					}
 					i := 0
-					for ; i < 6; i++ {
+					for ; i < 10; i++ {
 						if Pod.Status.Phase == v1.PodRunning {
 							podLog := clientset.CoreV1().Pods("gpu-operator").GetLogs(Pod.Name,
 								&v1.PodLogOptions{Container: "nvidia-operator-validator"})
@@ -662,7 +662,7 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 						}
 						time.Sleep(1 * time.Minute)
 					}
-					if i == 5 {
+					if i == 10 {
 						klog.Warningf("nvidia-operator-validator install toolkit failed in node [%s]! - delete this machine", clone.Name)
 						description = fmt.Sprintf(
 							"Machine %s failed to install gpu validator", clone.Name)
@@ -689,21 +689,23 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 				lastOperationType = v1alpha1.MachineOperationHealthCheck
 				// c.rebooted = false
 			}
-			klog.V(2).Info(description)
+			if !objectRequiresUpdate {
+				klog.V(2).Info(description)
 
-			// Machine is ready and has joined/re-joined the cluster
-			clone.Status.LastOperation = v1alpha1.LastOperation{
-				Description:    description,
-				State:          v1alpha1.MachineStateSuccessful,
-				Type:           lastOperationType,
-				LastUpdateTime: metav1.Now(),
+				// Machine is ready and has joined/re-joined the cluster
+				clone.Status.LastOperation = v1alpha1.LastOperation{
+					Description:    description,
+					State:          v1alpha1.MachineStateSuccessful,
+					Type:           lastOperationType,
+					LastUpdateTime: metav1.Now(),
+				}
+				clone.Status.CurrentStatus = v1alpha1.CurrentStatus{
+					Phase: v1alpha1.MachineRunning,
+					//TimeoutActive:  false,
+					LastUpdateTime: metav1.Now(),
+				}
+				objectRequiresUpdate = true
 			}
-			clone.Status.CurrentStatus = v1alpha1.CurrentStatus{
-				Phase: v1alpha1.MachineRunning,
-				//TimeoutActive:  false,
-				LastUpdateTime: metav1.Now(),
-			}
-			objectRequiresUpdate = true
 		}
 
 	} else if err != nil && apierrors.IsNotFound(err) {
