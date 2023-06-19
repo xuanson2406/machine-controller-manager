@@ -604,6 +604,7 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 				}
 
 				if namespace.Name == "gpu-operator" {
+					klog.V(4).Infof("GPU is installed in this cluster!")
 					node, err := clientset.CoreV1().Nodes().Get(clone.Name, metav1.GetOptions{})
 					if err != nil {
 						klog.Warning(err)
@@ -617,7 +618,7 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 					if err != nil {
 						klog.Warning(err)
 					}
-
+					klog.V(4).Infof("node %s have taint with key nvidia.com/gpu", clone.Name)
 					podList, err := clientset.CoreV1().Pods("gpu-operator").List(metav1.ListOptions{})
 					if err != nil {
 						klog.Warning(err)
@@ -645,7 +646,9 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 								klog.Warning(err)
 							}
 							logOutput := buf.String()
+							klog.V(4).Infof("Log of Pod %s: %s", Pod.Name, logOutput)
 							if strings.Contains(logOutput, "all validations are successful") {
+								klog.V(4).Infof("pod nvidia-operator-validator installed successful")
 								var updatedTaints []corev1.Taint
 								for _, taint := range node.Spec.Taints {
 									if taint.Key != "nvidia.com/gpu" {
@@ -657,13 +660,15 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 								if err != nil {
 									klog.Warning(err)
 								}
+								klog.V(4).Infof("node %s deleted taint nvidia.com/gpu", clone.Name)
 								break
 							}
 						}
 						time.Sleep(1 * time.Minute)
 					}
+
 					if i == 10 {
-						klog.Warningf("nvidia-operator-validator install toolkit failed in node [%s]! - delete this machine", clone.Name)
+						klog.Warningf("nvidia-operator-validator install toolkit failed in node [%s]! - delete this machine [%d]", clone.Name, i)
 						description = fmt.Sprintf(
 							"Machine %s failed to install gpu validator", clone.Name)
 						klog.Error(description)
