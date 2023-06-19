@@ -619,19 +619,20 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 						klog.Warning(err)
 					}
 					klog.V(4).Infof("node %s have taint with key nvidia.com/gpu", clone.Name)
-					podList, err := clientset.CoreV1().Pods("gpu-operator").List(metav1.ListOptions{})
-					if err != nil {
-						klog.Warning(err)
-					}
-					Pod := v1.Pod{}
-					for _, p := range podList.Items {
-						if p.Spec.NodeName == clone.Name && strings.Contains(p.Name, "nvidia-operator-validator") {
-							Pod = p
-							break
-						}
-					}
 					i := 0
 					for ; i < 10; i++ {
+						podList, err := clientset.CoreV1().Pods("gpu-operator").List(metav1.ListOptions{})
+						if err != nil {
+							klog.Warning(err)
+						}
+						Pod := v1.Pod{}
+						for _, p := range podList.Items {
+							if p.Spec.NodeName == clone.Name && strings.Contains(p.Name, "nvidia-operator-validator") {
+								Pod = p
+								break
+							}
+						}
+						klog.V(4).Infof("Status of pod %s: %s", Pod.Name, Pod.Status.Phase)
 						if Pod.Status.Phase == v1.PodRunning {
 							podLog := clientset.CoreV1().Pods("gpu-operator").GetLogs(Pod.Name,
 								&v1.PodLogOptions{Container: "nvidia-operator-validator"})
@@ -672,6 +673,19 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 						description = fmt.Sprintf(
 							"Machine %s failed to install gpu validator", clone.Name)
 						klog.Error(description)
+
+						var updatedTaints []corev1.Taint
+						for _, taint := range node.Spec.Taints {
+							if taint.Key != "nvidia.com/gpu" {
+								updatedTaints = append(updatedTaints, taint)
+							}
+						}
+						node.Spec.Taints = updatedTaints
+						_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
+						if err != nil {
+							klog.Warning(err)
+						}
+						klog.V(4).Infof("node %s deleted taint nvidia.com/gpu", clone.Name)
 
 						clone.Status.LastOperation = v1alpha1.LastOperation{
 							Description:    description,
