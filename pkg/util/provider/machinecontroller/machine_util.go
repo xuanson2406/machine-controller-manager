@@ -889,10 +889,11 @@ func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 						return fmt.Errorf("unable to power off vm [%v]", err)
 					}
 				}
-
-				err = task.WaitTaskCompletion()
-				if err != nil {
-					return fmt.Errorf("unable to wait for power of vm completion: [%v]", err)
+				if task.Task != nil {
+					err = task.WaitTaskCompletion()
+					if err != nil {
+						return fmt.Errorf("unable to wait for power off vm completion: [%v]", err)
+					}
 				}
 				for {
 					err = vm.PowerOnAndForceCustomization()
