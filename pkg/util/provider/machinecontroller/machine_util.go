@@ -602,8 +602,16 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 				if err != nil {
 					klog.Warning(err)
 				}
-
-				if namespace.Name == "gpu-operator" {
+				machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
+				if err != nil {
+					klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machine.Spec.Class.Name, err)
+					return machineutils.ShortRetry, err
+				}
+				providerSpec, err := v1alpha1.DecodeProviderSpecFromMachineClass(machineClass)
+				if err != nil {
+					klog.Warningf("Error to decode providerSpec from machineclass %s: %v", machineClass.Name, err)
+				}
+				if providerSpec.VGPU == "gpu" && namespace.Name == "gpu-operator" {
 					klog.V(4).Infof("GPU is installed in this cluster!")
 					node, err := clientset.CoreV1().Nodes().Get(clone.Name, metav1.GetOptions{})
 					if err != nil {
@@ -662,7 +670,9 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 									klog.Warning(err)
 								}
 								klog.V(4).Infof("node %s deleted taint nvidia.com/gpu", clone.Name)
+								// volume := clientset.StorageV1().VolumeAttachments().List()
 								break
+
 							}
 						}
 						time.Sleep(1 * time.Minute)
@@ -895,6 +905,7 @@ func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 						return fmt.Errorf("unable to wait for power off vm completion: [%v]", err)
 					}
 				}
+				klog.V(4).Infof("VM %s is power off", machine.Name)
 				for {
 					err = vm.PowerOnAndForceCustomization()
 					if err != nil {
