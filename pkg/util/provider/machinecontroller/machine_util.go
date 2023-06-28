@@ -27,7 +27,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"math"
 	"net/url"
 	"strings"
@@ -51,8 +50,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
 )
 
@@ -583,134 +580,134 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 					klog.Warning(err)
 				}
 
-				kubecfg, err := c.controlCoreClient.CoreV1().Secrets(c.namespace).Get("kubecfg", metav1.GetOptions{})
-				if err != nil {
-					klog.Warning(err)
-				}
-				shootConfig := string(kubecfg.Data["kubeconfig"])
-				config, err := clientcmd.RESTConfigFromKubeConfig([]byte(shootConfig))
-				if err != nil {
-					panic(err.Error())
-				}
+				// kubecfg, err := c.controlCoreClient.CoreV1().Secrets(c.namespace).Get("kubecfg", metav1.GetOptions{})
+				// if err != nil {
+				// 	klog.Warning(err)
+				// }
+				// shootConfig := string(kubecfg.Data["kubeconfig"])
+				// config, err := clientcmd.RESTConfigFromKubeConfig([]byte(shootConfig))
+				// if err != nil {
+				// 	panic(err.Error())
+				// }
 
-				// Create a clientset using the Config object
-				clientset, err := kubernetes.NewForConfig(config)
-				if err != nil {
-					panic(err.Error())
-				}
-				namespace, err := clientset.CoreV1().Namespaces().Get("gpu-operator", metav1.GetOptions{})
-				if err != nil {
-					klog.Warning(err)
-				}
-				machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
-				if err != nil {
-					klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machine.Spec.Class.Name, err)
-					return machineutils.ShortRetry, err
-				}
-				providerSpec, err := v1alpha1.DecodeProviderSpecFromMachineClass(machineClass)
-				if err != nil {
-					klog.Warningf("Error to decode providerSpec from machineclass %s: %v", machineClass.Name, err)
-				}
-				if providerSpec.VGPU == "gpu" && namespace.Name == "gpu-operator" {
-					klog.V(4).Infof("GPU is installed in this cluster!")
-					node, err := clientset.CoreV1().Nodes().Get(clone.Name, metav1.GetOptions{})
-					if err != nil {
-						klog.Warning(err)
-					}
-					taints := corev1.Taint{
-						Key:    "nvidia.com/gpu",
-						Effect: corev1.TaintEffectNoSchedule,
-					}
-					node.Spec.Taints = append(node.Spec.Taints, taints)
-					_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
-					if err != nil {
-						klog.Warning(err)
-					}
-					klog.V(4).Infof("node %s have taint with key nvidia.com/gpu", clone.Name)
-					i := 0
-					for ; i < 10; i++ {
-						podList, err := clientset.CoreV1().Pods("gpu-operator").List(metav1.ListOptions{})
-						if err != nil {
-							klog.Warning(err)
-						}
-						Pod := v1.Pod{}
-						for _, p := range podList.Items {
-							if p.Spec.NodeName == clone.Name && strings.Contains(p.Name, "nvidia-operator-validator") {
-								Pod = p
-								break
-							}
-						}
-						klog.V(4).Infof("Status of pod %s: %s", Pod.Name, Pod.Status.Phase)
-						if Pod.Status.Phase == v1.PodRunning {
-							podLog := clientset.CoreV1().Pods("gpu-operator").GetLogs(Pod.Name,
-								&v1.PodLogOptions{Container: "nvidia-operator-validator"})
-							log, err := podLog.Stream()
-							if err != nil {
-								klog.Warning(err)
-							}
-							defer log.Close()
-							buf := new(bytes.Buffer)
-							_, err = io.Copy(buf, log)
-							if err != nil {
-								klog.Warning(err)
-							}
-							logOutput := buf.String()
-							klog.V(4).Infof("Log of Pod %s: %s", Pod.Name, logOutput)
-							if strings.Contains(logOutput, "all validations are successful") {
-								klog.V(4).Infof("pod nvidia-operator-validator installed successful")
-								var updatedTaints []corev1.Taint
-								for _, taint := range node.Spec.Taints {
-									if taint.Key != "nvidia.com/gpu" {
-										updatedTaints = append(updatedTaints, taint)
-									}
-								}
-								node.Spec.Taints = updatedTaints
-								_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
-								if err != nil {
-									klog.Warning(err)
-								}
-								klog.V(4).Infof("node %s deleted taint nvidia.com/gpu", clone.Name)
-								// volume := clientset.StorageV1().VolumeAttachments().List()
-								break
+				// // Create a clientset using the Config object
+				// clientset, err := kubernetes.NewForConfig(config)
+				// if err != nil {
+				// 	panic(err.Error())
+				// }
+				// namespace, err := clientset.CoreV1().Namespaces().Get("gpu-operator", metav1.GetOptions{})
+				// if err != nil {
+				// 	klog.Warning(err)
+				// }
+				// machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
+				// if err != nil {
+				// 	klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machine.Spec.Class.Name, err)
+				// 	return machineutils.ShortRetry, err
+				// }
+				// providerSpec, err := v1alpha1.DecodeProviderSpecFromMachineClass(machineClass)
+				// if err != nil {
+				// 	klog.Warningf("Error to decode providerSpec from machineclass %s: %v", machineClass.Name, err)
+				// }
+				// if providerSpec.VGPU == "gpu" && namespace.Name == "gpu-operator" {
+				// 	klog.V(4).Infof("GPU is installed in this cluster!")
+				// 	node, err := clientset.CoreV1().Nodes().Get(clone.Name, metav1.GetOptions{})
+				// 	if err != nil {
+				// 		klog.Warning(err)
+				// 	}
+				// 	taints := corev1.Taint{
+				// 		Key:    "nvidia.com/gpu",
+				// 		Effect: corev1.TaintEffectNoSchedule,
+				// 	}
+				// 	node.Spec.Taints = append(node.Spec.Taints, taints)
+				// 	_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
+				// 	if err != nil {
+				// 		klog.Warning(err)
+				// 	}
+				// 	klog.V(4).Infof("node %s have taint with key nvidia.com/gpu", clone.Name)
+				// 	i := 0
+				// 	for ; i < 10; i++ {
+				// 		podList, err := clientset.CoreV1().Pods("gpu-operator").List(metav1.ListOptions{})
+				// 		if err != nil {
+				// 			klog.Warning(err)
+				// 		}
+				// 		Pod := v1.Pod{}
+				// 		for _, p := range podList.Items {
+				// 			if p.Spec.NodeName == clone.Name && strings.Contains(p.Name, "nvidia-operator-validator") {
+				// 				Pod = p
+				// 				break
+				// 			}
+				// 		}
+				// 		klog.V(4).Infof("Status of pod %s: %s", Pod.Name, Pod.Status.Phase)
+				// 		if Pod.Status.Phase == v1.PodRunning {
+				// 			podLog := clientset.CoreV1().Pods("gpu-operator").GetLogs(Pod.Name,
+				// 				&v1.PodLogOptions{Container: "nvidia-operator-validator"})
+				// 			log, err := podLog.Stream()
+				// 			if err != nil {
+				// 				klog.Warning(err)
+				// 			}
+				// 			defer log.Close()
+				// 			buf := new(bytes.Buffer)
+				// 			_, err = io.Copy(buf, log)
+				// 			if err != nil {
+				// 				klog.Warning(err)
+				// 			}
+				// 			logOutput := buf.String()
+				// 			klog.V(4).Infof("Log of Pod %s: %s", Pod.Name, logOutput)
+				// 			if strings.Contains(logOutput, "all validations are successful") {
+				// 				klog.V(4).Infof("pod nvidia-operator-validator installed successful")
+				// 				var updatedTaints []corev1.Taint
+				// 				for _, taint := range node.Spec.Taints {
+				// 					if taint.Key != "nvidia.com/gpu" {
+				// 						updatedTaints = append(updatedTaints, taint)
+				// 					}
+				// 				}
+				// 				node.Spec.Taints = updatedTaints
+				// 				_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
+				// 				if err != nil {
+				// 					klog.Warning(err)
+				// 				}
+				// 				klog.V(4).Infof("node %s deleted taint nvidia.com/gpu", clone.Name)
+				// 				// volume := clientset.StorageV1().VolumeAttachments().List()
+				// 				break
 
-							}
-						}
-						time.Sleep(1 * time.Minute)
-					}
+				// 			}
+				// 		}
+				// 		time.Sleep(1 * time.Minute)
+				// 	}
 
-					if i == 10 {
-						klog.Warningf("nvidia-operator-validator install toolkit failed in node [%s]! - delete this machine [%d]", clone.Name, i)
-						description = fmt.Sprintf(
-							"Machine %s failed to install gpu validator", clone.Name)
-						klog.Error(description)
+				// 	if i == 10 {
+				// 		klog.Warningf("nvidia-operator-validator install toolkit failed in node [%s]! - delete this machine [%d]", clone.Name, i)
+				// 		description = fmt.Sprintf(
+				// 			"Machine %s failed to install gpu validator", clone.Name)
+				// 		klog.Error(description)
 
-						var updatedTaints []corev1.Taint
-						for _, taint := range node.Spec.Taints {
-							if taint.Key != "nvidia.com/gpu" {
-								updatedTaints = append(updatedTaints, taint)
-							}
-						}
-						node.Spec.Taints = updatedTaints
-						_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
-						if err != nil {
-							klog.Warning(err)
-						}
-						klog.V(4).Infof("node %s deleted taint nvidia.com/gpu", clone.Name)
+				// 		var updatedTaints []corev1.Taint
+				// 		for _, taint := range node.Spec.Taints {
+				// 			if taint.Key != "nvidia.com/gpu" {
+				// 				updatedTaints = append(updatedTaints, taint)
+				// 			}
+				// 		}
+				// 		node.Spec.Taints = updatedTaints
+				// 		_, err = c.targetCoreClient.CoreV1().Nodes().Update(node)
+				// 		if err != nil {
+				// 			klog.Warning(err)
+				// 		}
+				// 		klog.V(4).Infof("node %s deleted taint nvidia.com/gpu", clone.Name)
 
-						clone.Status.LastOperation = v1alpha1.LastOperation{
-							Description:    description,
-							State:          v1alpha1.MachineStateFailed,
-							Type:           machine.Status.LastOperation.Type,
-							LastUpdateTime: metav1.Now(),
-						}
-						clone.Status.CurrentStatus = v1alpha1.CurrentStatus{
-							Phase: v1alpha1.MachineFailed,
-							//TimeoutActive:  false,
-							LastUpdateTime: metav1.Now(),
-						}
-						objectRequiresUpdate = true
-					}
-				}
+				// 		clone.Status.LastOperation = v1alpha1.LastOperation{
+				// 			Description:    description,
+				// 			State:          v1alpha1.MachineStateFailed,
+				// 			Type:           machine.Status.LastOperation.Type,
+				// 			LastUpdateTime: metav1.Now(),
+				// 		}
+				// 		clone.Status.CurrentStatus = v1alpha1.CurrentStatus{
+				// 			Phase: v1alpha1.MachineFailed,
+				// 			//TimeoutActive:  false,
+				// 			LastUpdateTime: metav1.Now(),
+				// 		}
+				// 		objectRequiresUpdate = true
+				// 	}
+				// }
 
 			} else {
 				// Machine rejoined the cluster after a healthcheck
@@ -718,23 +715,23 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 				lastOperationType = v1alpha1.MachineOperationHealthCheck
 				// c.rebooted = false
 			}
-			if !objectRequiresUpdate {
-				klog.V(2).Info(description)
+			// if !objectRequiresUpdate {
+			klog.V(2).Info(description)
 
-				// Machine is ready and has joined/re-joined the cluster
-				clone.Status.LastOperation = v1alpha1.LastOperation{
-					Description:    description,
-					State:          v1alpha1.MachineStateSuccessful,
-					Type:           lastOperationType,
-					LastUpdateTime: metav1.Now(),
-				}
-				clone.Status.CurrentStatus = v1alpha1.CurrentStatus{
-					Phase: v1alpha1.MachineRunning,
-					//TimeoutActive:  false,
-					LastUpdateTime: metav1.Now(),
-				}
-				objectRequiresUpdate = true
+			// Machine is ready and has joined/re-joined the cluster
+			clone.Status.LastOperation = v1alpha1.LastOperation{
+				Description:    description,
+				State:          v1alpha1.MachineStateSuccessful,
+				Type:           lastOperationType,
+				LastUpdateTime: metav1.Now(),
 			}
+			clone.Status.CurrentStatus = v1alpha1.CurrentStatus{
+				Phase: v1alpha1.MachineRunning,
+				//TimeoutActive:  false,
+				LastUpdateTime: metav1.Now(),
+			}
+			objectRequiresUpdate = true
+			// }
 		}
 
 	} else if err != nil && apierrors.IsNotFound(err) {
