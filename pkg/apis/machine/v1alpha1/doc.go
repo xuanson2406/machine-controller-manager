@@ -14,7 +14,7 @@
 
 // Package v1alpha1 is the v1alpha1 version of the API.
 // +k8s:deepcopy-gen=package,register
-// +k8s:conversion-gen=github.com/gardener/machine-controller-manager/pkg/apis/machine
+// +k8s:conversion-gen=github.com/xuanson2406/machine-controller-manager/pkg/apis/machine
 // +k8s:openapi-gen=true
 // +k8s:defaulter-gen=TypeMeta
 // +groupName=machine.sapcloud.io

@@ -21,7 +21,7 @@ package internalversion
 import (
 	"fmt"
 
-	machineinternalversion "github.com/gardener/machine-controller-manager/pkg/client/clientset/internalversion/typed/machine/internalversion"
+	machineinternalversion "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/internalversion/typed/machine/internalversion"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

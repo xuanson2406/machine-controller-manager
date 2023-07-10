@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	v1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	mcmscheme "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
+	v1alpha1 "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	mcmscheme "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/scheme"
 	v1 "k8s.io/api/apps/v1"
 	rbacv1bata1 "k8s.io/api/rbac/v1beta1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"

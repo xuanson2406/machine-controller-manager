@@ -24,16 +24,16 @@ package options
 import (
 	"time"
 
-	machineconfig "github.com/gardener/machine-controller-manager/pkg/options"
 	"github.com/spf13/pflag"
+	machineconfig "github.com/xuanson2406/machine-controller-manager/pkg/options"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 
-	"github.com/gardener/machine-controller-manager/pkg/util/client/leaderelectionconfig"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/client/leaderelectionconfig"
 
-	"github.com/gardener/machine-controller-manager/pkg/controller"
+	"github.com/xuanson2406/machine-controller-manager/pkg/controller"
 	// add the machine feature gates
-	_ "github.com/gardener/machine-controller-manager/pkg/features"
+	_ "github.com/xuanson2406/machine-controller-manager/pkg/features"
 )
 
 // MCMServer is the main context object for the controller manager.

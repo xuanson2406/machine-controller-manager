@@ -25,9 +25,9 @@ import (
 	"regexp"
 	"strings"
 
-	v1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus"
+	v1alpha1 "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/metrics"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -501,12 +501,12 @@ func (d *AWSDriver) GetVolNames(specs []corev1.PersistentVolumeSpec) ([]string, 
 	return names, nil
 }
 
-//GetUserData return the used data whit which the VM will be booted
+// GetUserData return the used data whit which the VM will be booted
 func (d *AWSDriver) GetUserData() string {
 	return d.UserData
 }
 
-//SetUserData set the used data whit which the VM will be booted
+// SetUserData set the used data whit which the VM will be booted
 func (d *AWSDriver) SetUserData(userData string) {
 	d.UserData = userData
 }
@@ -516,11 +516,12 @@ var awsVolumeRegMatch = regexp.MustCompile("^vol-[^/]*$")
 
 // kubernetesVolumeIDToEBSVolumeID translates Kubernetes volume ID to EBS volume ID
 // KubernetsVolumeID forms:
-//  * aws://<zone>/<awsVolumeId>
-//  * aws:///<awsVolumeId>
-//  * <awsVolumeId>
+//   - aws://<zone>/<awsVolumeId>
+//   - aws:///<awsVolumeId>
+//   - <awsVolumeId>
+//
 // EBS Volume ID form:
-//  * vol-<alphanumberic>
+//   - vol-<alphanumberic>
 func kubernetesVolumeIDToEBSVolumeID(kubernetesID string) (string, error) {
 	// name looks like aws://availability-zone/awsVolumeId
 

@@ -20,7 +20,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/gardener/machine-controller-manager/pkg/driver"
+	. "github.com/xuanson2406/machine-controller-manager/pkg/driver"
 )
 
 var _ = Describe("Driver", func() {

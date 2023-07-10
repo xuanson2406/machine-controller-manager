@@ -22,19 +22,19 @@ import (
 	"sync"
 	"time"
 
-	machineinternal "github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	machineapi "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
-	machineinformers "github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions/machine/v1alpha1"
-	machinelisters "github.com/gardener/machine-controller-manager/pkg/client/listers/machine/v1alpha1"
+	machineinternal "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
+	machinev1alpha1 "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	machineapi "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
+	machineinformers "github.com/xuanson2406/machine-controller-manager/pkg/client/informers/externalversions/machine/v1alpha1"
+	machinelisters "github.com/xuanson2406/machine-controller-manager/pkg/client/listers/machine/v1alpha1"
 
-	"github.com/gardener/machine-controller-manager/pkg/handlers"
-	"github.com/gardener/machine-controller-manager/pkg/util/k8sutils"
-	"github.com/gardener/machine-controller-manager/pkg/util/permits"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/drain"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/driver"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/options"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/xuanson2406/machine-controller-manager/pkg/handlers"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/k8sutils"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/permits"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/drain"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/driver"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/options"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
@@ -66,7 +66,7 @@ const (
 	// MCFinalizerName is the finalizer created for the external
 	// machine controller to differentiate it from the MCMFinalizerName
 	// This finalizer is added only on secret-objects to avoid race between in-tree and out-of-tree controllers.
-	// This is a stopgap solution to resolve: https://github.com/gardener/machine-controller-manager/issues/486.
+	// This is a stopgap solution to resolve: https://github.com/xuanson2406/machine-controller-manager/issues/486.
 	MCFinalizerName = "machine.sapcloud.io/machine-controller"
 )
 

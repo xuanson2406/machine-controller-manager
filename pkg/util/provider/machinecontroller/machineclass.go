@@ -29,9 +29,9 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/machineutils"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machineutils"
 )
 
 func (c *controller) machineToMachineClassAdd(obj interface{}) {

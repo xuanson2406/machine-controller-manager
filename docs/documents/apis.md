@@ -844,7 +844,7 @@ bool
 <td>
 <em>
 <a href="#%2agithub.com%2fgardener%2fmachine-controller-manager%2fpkg%2fapis%2fmachine%2fv1alpha1.GCPDisk">
-[]*github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPDisk
+[]*github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPDisk
 </a>
 </em>
 </td>
@@ -882,7 +882,7 @@ string
 <td>
 <em>
 <a href="#%2agithub.com%2fgardener%2fmachine-controller-manager%2fpkg%2fapis%2fmachine%2fv1alpha1.GCPMetadata">
-[]*github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPMetadata
+[]*github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPMetadata
 </a>
 </em>
 </td>
@@ -896,7 +896,7 @@ string
 <td>
 <em>
 <a href="#%2agithub.com%2fgardener%2fmachine-controller-manager%2fpkg%2fapis%2fmachine%2fv1alpha1.GCPNetworkInterface">
-[]*github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPNetworkInterface
+[]*github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPNetworkInterface
 </a>
 </em>
 </td>
@@ -4006,7 +4006,7 @@ bool
 <td>
 <em>
 <a href="#%2agithub.com%2fgardener%2fmachine-controller-manager%2fpkg%2fapis%2fmachine%2fv1alpha1.GCPDisk">
-[]*github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPDisk
+[]*github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPDisk
 </a>
 </em>
 </td>
@@ -4044,7 +4044,7 @@ string
 <td>
 <em>
 <a href="#%2agithub.com%2fgardener%2fmachine-controller-manager%2fpkg%2fapis%2fmachine%2fv1alpha1.GCPMetadata">
-[]*github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPMetadata
+[]*github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPMetadata
 </a>
 </em>
 </td>
@@ -4058,7 +4058,7 @@ string
 <td>
 <em>
 <a href="#%2agithub.com%2fgardener%2fmachine-controller-manager%2fpkg%2fapis%2fmachine%2fv1alpha1.GCPNetworkInterface">
-[]*github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPNetworkInterface
+[]*github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPNetworkInterface
 </a>
 </em>
 </td>
@@ -5185,7 +5185,7 @@ newest MachineSet.</p>
 <td>
 <em>
 <a href="#%2agithub.com%2fgardener%2fmachine-controller-manager%2fpkg%2fapis%2fmachine%2fv1alpha1.MachineSummary">
-[]*github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSummary
+[]*github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSummary
 </a>
 </em>
 </td>
@@ -5612,7 +5612,7 @@ LastOperation
 <td>
 <em>
 <a href="#%5b%5dgithub.com%2fgardener%2fmachine-controller-manager%2fpkg%2fapis%2fmachine%2fv1alpha1.MachineSummary">
-[]github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSummary
+[]github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSummary
 </a>
 </em>
 </td>

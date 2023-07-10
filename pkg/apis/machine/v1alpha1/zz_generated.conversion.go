@@ -24,7 +24,7 @@ package v1alpha1
 import (
 	unsafe "unsafe"
 
-	machine "github.com/gardener/machine-controller-manager/pkg/apis/machine"
+	machine "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	conversion "k8s.io/apimachinery/pkg/conversion"

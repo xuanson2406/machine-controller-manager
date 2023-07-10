@@ -25,12 +25,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gardener/machine-controller-manager/cmd/machine-controller-manager/app"
-	"github.com/gardener/machine-controller-manager/cmd/machine-controller-manager/app/options"
-	_ "github.com/gardener/machine-controller-manager/pkg/util/client/metrics/prometheus" // for client metric registration
-	_ "github.com/gardener/machine-controller-manager/pkg/util/reflector/prometheus"      // for reflector metric registration
-	_ "github.com/gardener/machine-controller-manager/pkg/util/workqueue/prometheus"      // for workqueue metric registration
 	"github.com/spf13/pflag"
+	"github.com/xuanson2406/machine-controller-manager/cmd/machine-controller-manager/app"
+	"github.com/xuanson2406/machine-controller-manager/cmd/machine-controller-manager/app/options"
+	_ "github.com/xuanson2406/machine-controller-manager/pkg/util/client/metrics/prometheus" // for client metric registration
+	_ "github.com/xuanson2406/machine-controller-manager/pkg/util/reflector/prometheus"      // for reflector metric registration
+	_ "github.com/xuanson2406/machine-controller-manager/pkg/util/workqueue/prometheus"      // for workqueue metric registration
 	"k8s.io/component-base/cli/flag"
 	"k8s.io/component-base/logs"
 	// TODO version should be enabled later on. DON'T import k8s.io/kubernetes 	_ "k8s.io/kubernetes/pkg/version/prometheus"        // for version metric registration
