@@ -660,7 +660,7 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 				// When machine creation went through
 				description = fmt.Sprintf("Machine %s successfully joined the cluster", clone.Name)
 				lastOperationType = v1alpha1.MachineOperationCreate
-
+				// if
 				// Delete the bootstrap token
 				err = c.deleteBootstrapToken(ctx, clone.Name)
 				if err != nil {
