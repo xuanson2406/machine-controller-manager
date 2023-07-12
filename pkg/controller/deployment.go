@@ -40,9 +40,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/cache"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/validation"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/validation"
 )
 
 // controllerKind contains the schema.GroupVersionKind for this controller type.
@@ -282,7 +282,7 @@ func (dc *controller) enqueueRateLimited(deployment *v1alpha1.MachineDeployment)
 	dc.machineDeploymentQueue.AddRateLimited(key)
 }
 
-//  enqueueMachineDeploymentAfter will enqueue a deployment after the provided amount of time.
+// enqueueMachineDeploymentAfter will enqueue a deployment after the provided amount of time.
 func (dc *controller) enqueueMachineDeploymentAfter(deployment *v1alpha1.MachineDeployment, after time.Duration) {
 	key, err := KeyFunc(deployment)
 	if err != nil {

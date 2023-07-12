@@ -33,8 +33,8 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
-	"github.com/gardener/machine-controller-manager/pkg/util/k8sutils"
-	"github.com/gardener/machine-controller-manager/pkg/util/provider/driver"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/k8sutils"
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/driver"
 	corev1 "k8s.io/api/core/v1"
 	policyv1 "k8s.io/api/policy/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"

@@ -21,9 +21,9 @@ PROJECT_ROOT="${CURRENT_DIR}"/..
 
 bash "${PROJECT_ROOT}"/vendor/k8s.io/code-generator/generate-internal-groups.sh \
   deepcopy,defaulter,conversion,client,lister,informer \
-  github.com/gardener/machine-controller-manager/pkg/client \
-  github.com/gardener/machine-controller-manager/pkg/apis \
-  github.com/gardener/machine-controller-manager/pkg/apis \
+  github.com/xuanson2406/machine-controller-manager/pkg/client \
+  github.com/xuanson2406/machine-controller-manager/pkg/apis \
+  github.com/xuanson2406/machine-controller-manager/pkg/apis \
   "machine:v1alpha1" \
   -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
@@ -34,12 +34,12 @@ echo "Generating openapi definitions"
 ${GOPATH}/bin/openapi-gen "$@" \
   --v 1 \
   --logtostderr \
-  --input-dirs=github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1 \
+  --input-dirs=github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1 \
   --input-dirs=k8s.io/api/core/v1 \
   --input-dirs=k8s.io/apimachinery/pkg/apis/meta/v1 \
   --input-dirs=k8s.io/apimachinery/pkg/api/resource \
   --input-dirs=k8s.io/apimachinery/pkg/types \
   --input-dirs=k8s.io/apimachinery/pkg/version \
   --input-dirs=k8s.io/apimachinery/pkg/runtime \
-  --output-package=github.com/gardener/machine-controller-manager/pkg/openapi \
+  --output-package=github.com/xuanson2406/machine-controller-manager/pkg/openapi \
   -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"

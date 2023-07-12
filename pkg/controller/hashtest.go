@@ -29,8 +29,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	hashutil "github.com/gardener/machine-controller-manager/pkg/util/hash"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	hashutil "github.com/xuanson2406/machine-controller-manager/pkg/util/hash"
 )
 
 var machineSpec = `

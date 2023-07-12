@@ -1,4 +1,4 @@
-module github.com/gardener/machine-controller-manager
+module github.com/xuanson2406/machine-controller-manager
 
 go 1.19
 

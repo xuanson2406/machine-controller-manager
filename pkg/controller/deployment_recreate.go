@@ -25,8 +25,8 @@ package controller
 import (
 	"context"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/controller/autoscaler"
+	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/xuanson2406/machine-controller-manager/pkg/controller/autoscaler"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog/v2"
 )

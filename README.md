@@ -1,9 +1,9 @@
 # machine-controller-manager
 
 [![CI Build status](https://concourse.ci.gardener.cloud/api/v1/teams/gardener/pipelines/machine-controller-manager-master/jobs/master-head-update-job/badge)](https://concourse.ci.gardener.cloud/teams/gardener/pipelines/machine-controller-manager-master/jobs/master-head-update-job)
-[![Go Report Card](https://goreportcard.com/badge/github.com/gardener/machine-controller-manager)](https://goreportcard.com/report/github.com/gardener/machine-controller-manager)
+[![Go Report Card](https://goreportcard.com/badge/github.com/xuanson2406/machine-controller-manager)](https://goreportcard.com/report/github.com/xuanson2406/machine-controller-manager)
 
-:warning: We are in the progress of migrating and deprecating all the in-tree providers to OOT. Please avoid making any new feature enhancements to the intree providers. Kindly make it on the [OOT providers available here](https://github.com/gardener/?q=machine-controller-manager-provider&type=&language=). More details on adding [new OOT providers can be found here](https://github.com/gardener/machine-controller-manager/blob/master/docs/development/cp_support_new.md). 
+:warning: We are in the progress of migrating and deprecating all the in-tree providers to OOT. Please avoid making any new feature enhancements to the intree providers. Kindly make it on the [OOT providers available here](https://github.com/gardener/?q=machine-controller-manager-provider&type=&language=). More details on adding [new OOT providers can be found here](https://github.com/xuanson2406/machine-controller-manager/blob/master/docs/development/cp_support_new.md). 
 
 # Overview
 
@@ -16,16 +16,16 @@ Machine Controller Manager aka MCM is a group of cooperative controllers that ma
 - implement e.g. rolling upgrades of machines/nodes
 
 MCM supports following providers. These provider code is maintained externally (out-of-tree), and the links for the same are linked below: 
-* [Alicloud](https://github.com/gardener/machine-controller-manager-provider-alicloud)
-* [AWS](https://github.com/gardener/machine-controller-manager-provider-aws)
-* [Azure](https://github.com/gardener/machine-controller-manager-provider-azure)
-* [Equinix Metal](https://github.com/gardener/machine-controller-manager-provider-equinix-metal)
-* [GCP](https://github.com/gardener/machine-controller-manager-provider-gcp)
-* [KubeVirt](https://github.com/gardener/machine-controller-manager-provider-kubevirt)
+* [Alicloud](https://github.com/xuanson2406/machine-controller-manager-provider-alicloud)
+* [AWS](https://github.com/xuanson2406/machine-controller-manager-provider-aws)
+* [Azure](https://github.com/xuanson2406/machine-controller-manager-provider-azure)
+* [Equinix Metal](https://github.com/xuanson2406/machine-controller-manager-provider-equinix-metal)
+* [GCP](https://github.com/xuanson2406/machine-controller-manager-provider-gcp)
+* [KubeVirt](https://github.com/xuanson2406/machine-controller-manager-provider-kubevirt)
 * [Metal Stack](https://github.com/metal-stack/machine-controller-manager-provider-metal)
-* [Openstack](https://github.com/gardener/machine-controller-manager-provider-openstack)
-* [V Sphere](https://github.com/gardener/machine-controller-manager-provider-vsphere)
-* [Yandex](https://github.com/gardener/machine-controller-manager-provider-yandex)
+* [Openstack](https://github.com/xuanson2406/machine-controller-manager-provider-openstack)
+* [V Sphere](https://github.com/xuanson2406/machine-controller-manager-provider-vsphere)
+* [Yandex](https://github.com/xuanson2406/machine-controller-manager-provider-yandex)
 
 It can easily be extended to support other cloud providers as well.
 
@@ -124,5 +124,5 @@ An FAQ is available [here](docs/FAQ.md)
 
 ## Cluster-api Implementation
 - `cluster-api` branch of machine-controller-manager implements the machine-api aspect of the [cluster-api project](https://github.com/kubernetes-sigs/cluster-api).
-- Link: https://github.com/gardener/machine-controller-manager/tree/cluster-api
+- Link: https://github.com/xuanson2406/machine-controller-manager/tree/cluster-api
 - Once cluster-api project gets stable, we may make `master` branch of MCM as well cluster-api compliant, with well-defined migration notes.

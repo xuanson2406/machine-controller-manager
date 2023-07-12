@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"strings"
 
-	v1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	v1alpha1 "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/packethost/packngo"
@@ -179,12 +179,12 @@ func (d *PacketDriver) GetVolNames(specs []corev1.PersistentVolumeSpec) ([]strin
 	return names, fmt.Errorf("Not implemented yet")
 }
 
-//GetUserData return the used data whit which the VM will be booted
+// GetUserData return the used data whit which the VM will be booted
 func (d *PacketDriver) GetUserData() string {
 	return d.UserData
 }
 
-//SetUserData set the used data whit which the VM will be booted
+// SetUserData set the used data whit which the VM will be booted
 func (d *PacketDriver) SetUserData(userData string) {
 	d.UserData = userData
 }

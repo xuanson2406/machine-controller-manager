@@ -3,7 +3,7 @@ package helpers
 import (
 	"context"
 
-	mcmClientset "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned"
+	mcmClientset "github.com/xuanson2406/machine-controller-manager/pkg/client/clientset/versioned"
 	v1 "k8s.io/api/core/v1"
 	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,7 +13,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-//Cluster type to hold cluster specific details
+// Cluster type to hold cluster specific details
 type Cluster struct {
 	restConfig          *rest.Config
 	Clientset           *kubernetes.Clientset
@@ -90,7 +90,7 @@ func (c *Cluster) IsSeed(target *Cluster) bool {
 	return false
 }
 
-//ClusterName retrieves cluster name from the kubeconfig
+// ClusterName retrieves cluster name from the kubeconfig
 func (c *Cluster) ClusterName() (string, error) {
 	var clusterName string
 	config, err := clientcmd.LoadFromFile(c.KubeConfigFilePath)
