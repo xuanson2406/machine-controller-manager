@@ -164,8 +164,12 @@ func (c *controller) reconcileClusterMachine(ctx context.Context, machine *v1alp
 	if machine.Status.Node != "" {
 		// If reference to node object exists execute the below
 		retry, err := c.reconcileMachineHealth(ctx, machine)
-		if err != nil {
-			return retry, err
+		if machine.Status.CurrentStatus.Phase == v1alpha1.MachineRunning &&
+			machine.Status.LastOperation.State == v1alpha1.MachineStateSuccessful && err == nil {
+			err = c.InstallChartForShoot(ctx, machine)
+			if err != nil {
+				return retry, err
+			}
 		}
 
 		retry, err = c.syncMachineNodeTemplates(ctx, machine)

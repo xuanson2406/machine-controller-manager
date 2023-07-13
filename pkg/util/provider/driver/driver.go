@@ -25,7 +25,7 @@ import (
 )
 
 // Driver is the common interface for creation/deletion of the VMs over different cloud-providers.
-type Driver interface {
+type   Driver interface {
 	// CreateMachine call is responsible for VM creation on the provider
 	CreateMachine(context.Context, *CreateMachineRequest) (*CreateMachineResponse, error)
 	// DeleteMachine call is responsible for VM deletion/termination on the provider
