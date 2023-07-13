@@ -192,18 +192,7 @@ func (c *Client) newBuilder() *resource.Builder {
 
 // Build validates for Kubernetes objects and returns unstructured infos.
 func (c *Client) Build(reader io.Reader, validate bool) (ResourceList, error) {
-	validationDirective := metav1.FieldValidationIgnore
-	if validate {
-		validationDirective = metav1.FieldValidationStrict
-	}
-
-	dynamicClient, err := c.Factory.DynamicClient()
-	if err != nil {
-		return nil, err
-	}
-
-	verifier := resource.NewQueryParamVerifier(dynamicClient, c.Factory.OpenAPIGetter(), resource.QueryParamFieldValidation)
-	schema, err := c.Factory.Validator(validationDirective, verifier)
+	schema, err := c.Factory.Validator(validate)
 	if err != nil {
 		return nil, err
 	}

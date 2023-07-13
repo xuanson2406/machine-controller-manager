@@ -12,6 +12,7 @@
 // limitations under the License.
 
 //go:build darwin
+// +build darwin
 
 package helmpath
 

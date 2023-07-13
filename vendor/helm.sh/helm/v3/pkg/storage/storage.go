@@ -177,7 +177,7 @@ func (s *Storage) removeLeastRecent(name string, max int) error {
 	relutil.SortByRevision(h)
 
 	lastDeployed, err := s.Deployed(name)
-	if err != nil && !errors.Is(err, driver.ErrNoDeployedReleases) {
+	if err != nil {
 		return err
 	}
 

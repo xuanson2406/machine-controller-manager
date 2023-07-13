@@ -344,10 +344,8 @@ func (i *Install) RunWithContext(ctx context.Context, chrt *chart.Chart, vals ma
 		return rel, err
 	}
 	rChan := make(chan resultMessage)
-	doneChan := make(chan struct{})
-	defer close(doneChan)
 	go i.performInstall(rChan, rel, toBeAdopted, resources)
-	go i.handleContext(ctx, rChan, doneChan, rel)
+	go i.handleContext(ctx, rChan, rel)
 	result := <-rChan
 	//start preformInstall go routine
 	return result.r, result.e
@@ -418,14 +416,12 @@ func (i *Install) performInstall(c chan<- resultMessage, rel *release.Release, t
 
 	i.reportToRun(c, rel, nil)
 }
-func (i *Install) handleContext(ctx context.Context, c chan<- resultMessage, done chan struct{}, rel *release.Release) {
-	select {
-	case <-ctx.Done():
+func (i *Install) handleContext(ctx context.Context, c chan<- resultMessage, rel *release.Release) {
+	go func() {
+		<-ctx.Done()
 		err := ctx.Err()
 		i.reportToRun(c, rel, err)
-	case <-done:
-		return
-	}
+	}()
 }
 func (i *Install) reportToRun(c chan<- resultMessage, rel *release.Release, err error) {
 	i.Lock.Lock()
@@ -712,10 +708,6 @@ func (c *ChartPathOptions) LocateChart(name string, settings *cli.EnvSettings) (
 		RegistryClient:   c.registryClient,
 	}
 
-	if registry.IsOCI(name) {
-		dl.Options = append(dl.Options, getter.WithRegistryClient(c.registryClient))
-	}
-
 	if c.Verify {
 		dl.Verify = downloader.VerifyAlways
 	}
@@ -755,13 +747,20 @@ func (c *ChartPathOptions) LocateChart(name string, settings *cli.EnvSettings) (
 	}
 
 	filename, _, err := dl.DownloadTo(name, version, settings.RepositoryCache)
-	if err != nil {
-		return "", err
-	}
-
-	lname, err := filepath.Abs(filename)
-	if err != nil {
+	if err == nil {
+		lname, err := filepath.Abs(filename)
+		if err != nil {
+			return filename, err
+		}
+		return lname, nil
+	} else if settings.Debug {
 		return filename, err
 	}
-	return lname, nil
+
+	atVersion := ""
+	if version != "" {
+		atVersion = fmt.Sprintf(" at version %q", version)
+	}
+
+	return filename, errors.Errorf("failed to download %q%s", name, atVersion)
 }

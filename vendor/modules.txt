@@ -1,7 +1,7 @@
 # cloud.google.com/go v0.99.0
 ## explicit; go 1.11
 cloud.google.com/go/compute/metadata
-# github.com/Azure/azure-sdk-for-go v42.2.0+incompatible
+# github.com/Azure/azure-sdk-for-go v56.3.0+incompatible
 ## explicit
 github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute
 github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering
@@ -25,7 +25,7 @@ github.com/Azure/go-autorest/autorest/adal
 # github.com/Azure/go-autorest/autorest/date v0.3.0
 ## explicit; go 1.12
 github.com/Azure/go-autorest/autorest/date
-# github.com/Azure/go-autorest/autorest/to v0.3.0
+# github.com/Azure/go-autorest/autorest/to v0.4.0
 ## explicit; go 1.12
 github.com/Azure/go-autorest/autorest/to
 # github.com/Azure/go-autorest/autorest/validation v0.2.0
@@ -108,8 +108,8 @@ github.com/araddon/dateparse
 # github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535
 ## explicit; go 1.12
 github.com/asaskevich/govalidator
-# github.com/aws/aws-sdk-go v1.23.13
-## explicit
+# github.com/aws/aws-sdk-go v1.34.9
+## explicit; go 1.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/awsutil
@@ -128,12 +128,15 @@ github.com/aws/aws-sdk-go/aws/endpoints
 github.com/aws/aws-sdk-go/aws/request
 github.com/aws/aws-sdk-go/aws/session
 github.com/aws/aws-sdk-go/aws/signer/v4
+github.com/aws/aws-sdk-go/internal/context
 github.com/aws/aws-sdk-go/internal/ini
 github.com/aws/aws-sdk-go/internal/sdkio
 github.com/aws/aws-sdk-go/internal/sdkmath
 github.com/aws/aws-sdk-go/internal/sdkrand
 github.com/aws/aws-sdk-go/internal/sdkuri
 github.com/aws/aws-sdk-go/internal/shareddefaults
+github.com/aws/aws-sdk-go/internal/strings
+github.com/aws/aws-sdk-go/internal/sync/singleflight
 github.com/aws/aws-sdk-go/private/protocol
 github.com/aws/aws-sdk-go/private/protocol/ec2query
 github.com/aws/aws-sdk-go/private/protocol/json/jsonutil
@@ -259,7 +262,7 @@ github.com/exponent-io/jsonpath
 # github.com/fatih/color v1.13.0
 ## explicit; go 1.13
 github.com/fatih/color
-# github.com/fsnotify/fsnotify v1.4.9
+# github.com/fsnotify/fsnotify v1.5.1
 ## explicit; go 1.13
 github.com/fsnotify/fsnotify
 # github.com/go-errors/errors v1.0.1
@@ -455,8 +458,8 @@ github.com/inconshreveable/mousetrap
 # github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 ## explicit
 github.com/jbenet/go-context/io
-# github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
-## explicit
+# github.com/jmespath/go-jmespath v0.3.0
+## explicit; go 1.14
 github.com/jmespath/go-jmespath
 # github.com/jmoiron/sqlx v1.3.5
 ## explicit; go 1.10
@@ -644,7 +647,7 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/rubenv/sql-migrate v1.1.2 => github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc
+# github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc => github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc
 ## explicit; go 1.16
 github.com/rubenv/sql-migrate
 github.com/rubenv/sql-migrate/sqlparse
@@ -692,8 +695,6 @@ github.com/xlab/treeprint
 github.com/xuanson2406/go-vcloud-director-fptcloud/v2/govcd
 github.com/xuanson2406/go-vcloud-director-fptcloud/v2/types/v56
 github.com/xuanson2406/go-vcloud-director-fptcloud/v2/util
-# github.com/ziutek/mymysql v1.5.4
-## explicit
 # go.opencensus.io v0.23.0
 ## explicit; go 1.13
 go.opencensus.io
@@ -841,7 +842,7 @@ golang.org/x/tools/internal/imports
 golang.org/x/tools/internal/packagesinternal
 golang.org/x/tools/internal/typeparams
 golang.org/x/tools/internal/typesinternal
-# google.golang.org/api v0.61.0
+# google.golang.org/api v0.62.0
 ## explicit; go 1.11
 google.golang.org/api/compute/v1
 google.golang.org/api/googleapi
@@ -975,8 +976,8 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
-# helm.sh/helm/v3 v3.10.0
-## explicit; go 1.18
+# helm.sh/helm/v3 v3.8.0
+## explicit; go 1.16
 helm.sh/helm/v3/internal/fileutil
 helm.sh/helm/v3/internal/ignore
 helm.sh/helm/v3/internal/resolver
