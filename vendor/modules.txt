@@ -323,9 +323,6 @@ github.com/go-git/go-git/v5/utils/merkletrie/filesystem
 github.com/go-git/go-git/v5/utils/merkletrie/index
 github.com/go-git/go-git/v5/utils/merkletrie/internal/frame
 github.com/go-git/go-git/v5/utils/merkletrie/noder
-# github.com/go-gorp/gorp/v3 v3.0.2
-## explicit; go 1.13
-github.com/go-gorp/gorp/v3
 # github.com/go-logr/logr v1.2.3
 ## explicit; go 1.16
 github.com/go-logr/logr
@@ -647,7 +644,7 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/rubenv/sql-migrate v1.1.2
+# github.com/rubenv/sql-migrate v1.1.2 => github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc
 ## explicit; go 1.16
 github.com/rubenv/sql-migrate
 github.com/rubenv/sql-migrate/sqlparse
@@ -695,6 +692,8 @@ github.com/xlab/treeprint
 github.com/xuanson2406/go-vcloud-director-fptcloud/v2/govcd
 github.com/xuanson2406/go-vcloud-director-fptcloud/v2/types/v56
 github.com/xuanson2406/go-vcloud-director-fptcloud/v2/util
+# github.com/ziutek/mymysql v1.5.4
+## explicit
 # go.opencensus.io v0.23.0
 ## explicit; go 1.13
 go.opencensus.io
@@ -958,6 +957,9 @@ google.golang.org/protobuf/types/descriptorpb
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/timestamppb
+# gopkg.in/gorp.v1 v1.7.2
+## explicit
+gopkg.in/gorp.v1
 # gopkg.in/inf.v0 v0.9.1
 ## explicit
 gopkg.in/inf.v0
@@ -1645,4 +1647,5 @@ sigs.k8s.io/structured-merge-diff/v4/value
 # sigs.k8s.io/yaml v1.3.0
 ## explicit; go 1.12
 sigs.k8s.io/yaml
+# github.com/rubenv/sql-migrate => github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc
 # k8s.io/apimachinery => k8s.io/apimachinery v0.22.9
