@@ -16,7 +16,7 @@ import (
 
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/reference"
-	v2 "github.com/docker/distribution/registry/api/v2"
+	"github.com/docker/distribution/registry/api/v2"
 	"github.com/docker/distribution/registry/client/transport"
 	"github.com/docker/distribution/registry/storage/cache"
 	"github.com/docker/distribution/registry/storage/cache/memory"
@@ -736,12 +736,7 @@ func (bs *blobs) Create(ctx context.Context, options ...distribution.BlobCreateO
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", u, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := bs.client.Do(req)
+	resp, err := bs.client.Post(u, "", nil)
 	if err != nil {
 		return nil, err
 	}

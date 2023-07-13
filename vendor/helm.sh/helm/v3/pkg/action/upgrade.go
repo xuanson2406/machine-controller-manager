@@ -112,21 +112,18 @@ type resultMessage struct {
 
 // NewUpgrade creates a new Upgrade object with the given configuration.
 func NewUpgrade(cfg *Configuration) *Upgrade {
-	up := &Upgrade{
+	return &Upgrade{
 		cfg: cfg,
 	}
-	up.ChartPathOptions.registryClient = cfg.RegistryClient
-
-	return up
 }
 
-// Run executes the upgrade on the given release.
+// Run executes the upgrade on the given release
 func (u *Upgrade) Run(name string, chart *chart.Chart, vals map[string]interface{}) (*release.Release, error) {
 	ctx := context.Background()
 	return u.RunWithContext(ctx, name, chart, vals)
 }
 
-// RunWithContext executes the upgrade on the given release with context.
+// Run executes the upgrade on the given release with context.
 func (u *Upgrade) RunWithContext(ctx context.Context, name string, chart *chart.Chart, vals map[string]interface{}) (*release.Release, error) {
 	if err := u.cfg.KubeClient.IsReachable(); err != nil {
 		return nil, err

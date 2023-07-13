@@ -18,7 +18,6 @@ package resolver
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,27 +26,28 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/pkg/errors"
 
+	"helm.sh/helm/v3/internal/experimental/registry"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
+	"helm.sh/helm/v3/pkg/gates"
 	"helm.sh/helm/v3/pkg/helmpath"
 	"helm.sh/helm/v3/pkg/provenance"
-	"helm.sh/helm/v3/pkg/registry"
 	"helm.sh/helm/v3/pkg/repo"
 )
 
+const FeatureGateOCI = gates.Gate("HELM_EXPERIMENTAL_OCI")
+
 // Resolver resolves dependencies from semantic version ranges to a particular version.
 type Resolver struct {
-	chartpath      string
-	cachepath      string
-	registryClient *registry.Client
+	chartpath string
+	cachepath string
 }
 
-// New creates a new resolver for a given chart, helm home and registry client.
-func New(chartpath, cachepath string, registryClient *registry.Client) *Resolver {
+// New creates a new resolver for a given chart and a given helm home.
+func New(chartpath, cachepath string) *Resolver {
 	return &Resolver{
-		chartpath:      chartpath,
-		cachepath:      cachepath,
-		registryClient: registryClient,
+		chartpath: chartpath,
+		cachepath: cachepath,
 	}
 }
 
@@ -135,22 +135,9 @@ func (r *Resolver) Resolve(reqs []*chart.Dependency, repoNames map[string]string
 			found = false
 		} else {
 			version = d.Version
-			// Retrieve list of tags for repository
-			ref := fmt.Sprintf("%s/%s", strings.TrimPrefix(d.Repository, fmt.Sprintf("%s://", registry.OCIScheme)), d.Name)
-			tags, err := r.registryClient.Tags(ref)
-			if err != nil {
-				return nil, errors.Wrapf(err, "could not retrieve list of tags for repository %s", d.Repository)
-			}
-
-			vs = make(repo.ChartVersions, len(tags))
-			for ti, t := range tags {
-				// Mock chart version objects
-				version := &repo.ChartVersion{
-					Metadata: &chart.Metadata{
-						Version: t,
-					},
-				}
-				vs[ti] = version
+			if !FeatureGateOCI.IsEnabled() {
+				return nil, errors.Wrapf(FeatureGateOCI.Error(),
+					"repository %s is an OCI registry", d.Repository)
 			}
 		}
 
@@ -162,8 +149,7 @@ func (r *Resolver) Resolve(reqs []*chart.Dependency, repoNames map[string]string
 		// The version are already sorted and hence the first one to satisfy the constraint is used
 		for _, ver := range vs {
 			v, err := semver.NewVersion(ver.Version)
-			// OCI does not need URLs
-			if err != nil || (!registry.IsOCI(d.Repository) && len(ver.URLs) == 0) {
+			if err != nil || len(ver.URLs) == 0 {
 				// Not a legit entry.
 				continue
 			}

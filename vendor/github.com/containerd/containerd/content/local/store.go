@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -36,6 +37,7 @@ import (
 
 	digest "github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+	"github.com/pkg/errors"
 )
 
 var bufPool = sync.Pool{
@@ -92,13 +94,13 @@ func NewLabeledStore(root string, ls LabelStore) (content.Store, error) {
 func (s *store) Info(ctx context.Context, dgst digest.Digest) (content.Info, error) {
 	p, err := s.blobPath(dgst)
 	if err != nil {
-		return content.Info{}, fmt.Errorf("calculating blob info path: %w", err)
+		return content.Info{}, errors.Wrapf(err, "calculating blob info path")
 	}
 
 	fi, err := os.Stat(p)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = fmt.Errorf("content %v: %w", dgst, errdefs.ErrNotFound)
+			err = errors.Wrapf(errdefs.ErrNotFound, "content %v", dgst)
 		}
 
 		return content.Info{}, err
@@ -127,12 +129,12 @@ func (s *store) info(dgst digest.Digest, fi os.FileInfo, labels map[string]strin
 func (s *store) ReaderAt(ctx context.Context, desc ocispec.Descriptor) (content.ReaderAt, error) {
 	p, err := s.blobPath(desc.Digest)
 	if err != nil {
-		return nil, fmt.Errorf("calculating blob path for ReaderAt: %w", err)
+		return nil, errors.Wrapf(err, "calculating blob path for ReaderAt")
 	}
 
 	reader, err := OpenReader(p)
 	if err != nil {
-		return nil, fmt.Errorf("blob %s expected at %s: %w", desc.Digest, p, err)
+		return nil, errors.Wrapf(err, "blob %s expected at %s", desc.Digest, p)
 	}
 
 	return reader, nil
@@ -145,7 +147,7 @@ func (s *store) ReaderAt(ctx context.Context, desc ocispec.Descriptor) (content.
 func (s *store) Delete(ctx context.Context, dgst digest.Digest) error {
 	bp, err := s.blobPath(dgst)
 	if err != nil {
-		return fmt.Errorf("calculating blob path for delete: %w", err)
+		return errors.Wrapf(err, "calculating blob path for delete")
 	}
 
 	if err := os.RemoveAll(bp); err != nil {
@@ -153,7 +155,7 @@ func (s *store) Delete(ctx context.Context, dgst digest.Digest) error {
 			return err
 		}
 
-		return fmt.Errorf("content %v: %w", dgst, errdefs.ErrNotFound)
+		return errors.Wrapf(errdefs.ErrNotFound, "content %v", dgst)
 	}
 
 	return nil
@@ -161,18 +163,18 @@ func (s *store) Delete(ctx context.Context, dgst digest.Digest) error {
 
 func (s *store) Update(ctx context.Context, info content.Info, fieldpaths ...string) (content.Info, error) {
 	if s.ls == nil {
-		return content.Info{}, fmt.Errorf("update not supported on immutable content store: %w", errdefs.ErrFailedPrecondition)
+		return content.Info{}, errors.Wrapf(errdefs.ErrFailedPrecondition, "update not supported on immutable content store")
 	}
 
 	p, err := s.blobPath(info.Digest)
 	if err != nil {
-		return content.Info{}, fmt.Errorf("calculating blob path for update: %w", err)
+		return content.Info{}, errors.Wrapf(err, "calculating blob path for update")
 	}
 
 	fi, err := os.Stat(p)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = fmt.Errorf("content %v: %w", info.Digest, errdefs.ErrNotFound)
+			err = errors.Wrapf(errdefs.ErrNotFound, "content %v", info.Digest)
 		}
 
 		return content.Info{}, err
@@ -199,7 +201,7 @@ func (s *store) Update(ctx context.Context, info content.Info, fieldpaths ...str
 				all = true
 				labels = info.Labels
 			default:
-				return content.Info{}, fmt.Errorf("cannot update %q field on content info %q: %w", path, info.Digest, errdefs.ErrInvalidArgument)
+				return content.Info{}, errors.Wrapf(errdefs.ErrInvalidArgument, "cannot update %q field on content info %q", path, info.Digest)
 			}
 		}
 	} else {
@@ -376,7 +378,7 @@ func (s *store) status(ingestPath string) (content.Status, error) {
 	fi, err := os.Stat(dp)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = fmt.Errorf("%s: %w", err.Error(), errdefs.ErrNotFound)
+			err = errors.Wrap(errdefs.ErrNotFound, err.Error())
 		}
 		return content.Status{}, err
 	}
@@ -384,19 +386,19 @@ func (s *store) status(ingestPath string) (content.Status, error) {
 	ref, err := readFileString(filepath.Join(ingestPath, "ref"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = fmt.Errorf("%s: %w", err.Error(), errdefs.ErrNotFound)
+			err = errors.Wrap(errdefs.ErrNotFound, err.Error())
 		}
 		return content.Status{}, err
 	}
 
 	startedAt, err := readFileTimestamp(filepath.Join(ingestPath, "startedat"))
 	if err != nil {
-		return content.Status{}, fmt.Errorf("could not read startedat: %w", err)
+		return content.Status{}, errors.Wrapf(err, "could not read startedat")
 	}
 
 	updatedAt, err := readFileTimestamp(filepath.Join(ingestPath, "updatedat"))
 	if err != nil {
-		return content.Status{}, fmt.Errorf("could not read updatedat: %w", err)
+		return content.Status{}, errors.Wrapf(err, "could not read updatedat")
 	}
 
 	// because we don't write updatedat on every write, the mod time may
@@ -459,7 +461,7 @@ func (s *store) Writer(ctx context.Context, opts ...content.WriterOpt) (content.
 	// TODO(AkihiroSuda): we could create a random string or one calculated based on the context
 	// https://github.com/containerd/containerd/issues/2129#issuecomment-380255019
 	if wOpts.Ref == "" {
-		return nil, fmt.Errorf("ref must not be empty: %w", errdefs.ErrInvalidArgument)
+		return nil, errors.Wrap(errdefs.ErrInvalidArgument, "ref must not be empty")
 	}
 	var lockErr error
 	for count := uint64(0); count < 10; count++ {
@@ -493,16 +495,16 @@ func (s *store) resumeStatus(ref string, total int64, digester digest.Digester) 
 	path, _, data := s.ingestPaths(ref)
 	status, err := s.status(path)
 	if err != nil {
-		return status, fmt.Errorf("failed reading status of resume write: %w", err)
+		return status, errors.Wrap(err, "failed reading status of resume write")
 	}
 	if ref != status.Ref {
 		// NOTE(stevvooe): This is fairly catastrophic. Either we have some
 		// layout corruption or a hash collision for the ref key.
-		return status, fmt.Errorf("ref key does not match: %v != %v", ref, status.Ref)
+		return status, errors.Errorf("ref key does not match: %v != %v", ref, status.Ref)
 	}
 
 	if total > 0 && status.Total > 0 && total != status.Total {
-		return status, fmt.Errorf("provided total differs from status: %v != %v", total, status.Total)
+		return status, errors.Errorf("provided total differs from status: %v != %v", total, status.Total)
 	}
 
 	// TODO(stevvooe): slow slow slow!!, send to goroutine or use resumable hashes
@@ -526,10 +528,10 @@ func (s *store) writer(ctx context.Context, ref string, total int64, expected di
 	if expected != "" {
 		p, err := s.blobPath(expected)
 		if err != nil {
-			return nil, fmt.Errorf("calculating expected blob path for writer: %w", err)
+			return nil, errors.Wrap(err, "calculating expected blob path for writer")
 		}
 		if _, err := os.Stat(p); err == nil {
-			return nil, fmt.Errorf("content %v: %w", expected, errdefs.ErrAlreadyExists)
+			return nil, errors.Wrapf(errdefs.ErrAlreadyExists, "content %v", expected)
 		}
 	}
 
@@ -566,7 +568,7 @@ func (s *store) writer(ctx context.Context, ref string, total int64, expected di
 
 		// the ingest is new, we need to setup the target location.
 		// write the ref to a file for later use
-		if err := os.WriteFile(refp, []byte(ref), 0666); err != nil {
+		if err := ioutil.WriteFile(refp, []byte(ref), 0666); err != nil {
 			return nil, err
 		}
 
@@ -579,7 +581,7 @@ func (s *store) writer(ctx context.Context, ref string, total int64, expected di
 		}
 
 		if total > 0 {
-			if err := os.WriteFile(filepath.Join(path, "total"), []byte(fmt.Sprint(total)), 0666); err != nil {
+			if err := ioutil.WriteFile(filepath.Join(path, "total"), []byte(fmt.Sprint(total)), 0666); err != nil {
 				return nil, err
 			}
 		}
@@ -587,12 +589,11 @@ func (s *store) writer(ctx context.Context, ref string, total int64, expected di
 
 	fp, err := os.OpenFile(data, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open data file: %w", err)
+		return nil, errors.Wrap(err, "failed to open data file")
 	}
 
 	if _, err := fp.Seek(offset, io.SeekStart); err != nil {
-		fp.Close()
-		return nil, fmt.Errorf("could not seek to current write offset: %w", err)
+		return nil, errors.Wrap(err, "could not seek to current write offset")
 	}
 
 	return &writer{
@@ -614,7 +615,7 @@ func (s *store) Abort(ctx context.Context, ref string) error {
 	root := s.ingestRoot(ref)
 	if err := os.RemoveAll(root); err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf("ingest ref %q: %w", ref, errdefs.ErrNotFound)
+			return errors.Wrapf(errdefs.ErrNotFound, "ingest ref %q", ref)
 		}
 
 		return err
@@ -625,7 +626,7 @@ func (s *store) Abort(ctx context.Context, ref string) error {
 
 func (s *store) blobPath(dgst digest.Digest) (string, error) {
 	if err := dgst.Validate(); err != nil {
-		return "", fmt.Errorf("cannot calculate blob path from invalid digest: %v: %w", err, errdefs.ErrInvalidArgument)
+		return "", errors.Wrapf(errdefs.ErrInvalidArgument, "cannot calculate blob path from invalid digest: %v", err)
 	}
 
 	return filepath.Join(s.root, "blobs", dgst.Algorithm().String(), dgst.Hex()), nil
@@ -655,23 +656,23 @@ func (s *store) ingestPaths(ref string) (string, string, string) {
 }
 
 func readFileString(path string) (string, error) {
-	p, err := os.ReadFile(path)
+	p, err := ioutil.ReadFile(path)
 	return string(p), err
 }
 
 // readFileTimestamp reads a file with just a timestamp present.
 func readFileTimestamp(p string) (time.Time, error) {
-	b, err := os.ReadFile(p)
+	b, err := ioutil.ReadFile(p)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = fmt.Errorf("%s: %w", err.Error(), errdefs.ErrNotFound)
+			err = errors.Wrap(errdefs.ErrNotFound, err.Error())
 		}
 		return time.Time{}, err
 	}
 
 	var t time.Time
 	if err := t.UnmarshalText(b); err != nil {
-		return time.Time{}, fmt.Errorf("could not parse timestamp file %v: %w", p, err)
+		return time.Time{}, errors.Wrapf(err, "could not parse timestamp file %v", p)
 	}
 
 	return t, nil
@@ -682,23 +683,19 @@ func writeTimestampFile(p string, t time.Time) error {
 	if err != nil {
 		return err
 	}
-	return writeToCompletion(p, b, 0666)
+	return atomicWrite(p, b, 0666)
 }
 
-func writeToCompletion(path string, data []byte, mode os.FileMode) error {
+func atomicWrite(path string, data []byte, mode os.FileMode) error {
 	tmp := fmt.Sprintf("%s.tmp", path)
 	f, err := os.OpenFile(tmp, os.O_RDWR|os.O_CREATE|os.O_TRUNC|os.O_SYNC, mode)
 	if err != nil {
-		return fmt.Errorf("create tmp file: %w", err)
+		return errors.Wrap(err, "create tmp file")
 	}
 	_, err = f.Write(data)
 	f.Close()
 	if err != nil {
-		return fmt.Errorf("write tmp file: %w", err)
+		return errors.Wrap(err, "write atomic data")
 	}
-	err = os.Rename(tmp, path)
-	if err != nil {
-		return fmt.Errorf("rename tmp file: %w", err)
-	}
-	return nil
+	return os.Rename(tmp, path)
 }
