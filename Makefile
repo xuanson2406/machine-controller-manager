@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-IMAGE_REPOSITORY   := eu.gcr.io/gardener-project/gardener/machine-controller-manager
+IMAGE_REPOSITORY   := docker.io/xuanson2406/machine-controller-manager
 IMAGE_TAG          := $(shell cat VERSION)
 COVERPROFILE       := test/output/coverprofile.out
 
-CONTROL_NAMESPACE := default
-CONTROL_KUBECONFIG := dev/target-kubeconfig.yaml
-TARGET_KUBECONFIG := dev/target-kubeconfig.yaml
+CONTROL_NAMESPACE := "fke-v125vcd"
+CONTROL_KUBECONFIG := "/home/sondx12/.kube/control-kubeconfig.yaml"
+TARGET_KUBECONFIG := "/home/sondx12/.kube/target-kubeconfig.yaml"
 
 LEADER_ELECT 	   := "true"
 MACHINE_SAFETY_OVERSHOOTING_PERIOD:=1m
@@ -80,7 +80,7 @@ start:
 			--machine-safety-orphan-vms-period=30m \
 			--machine-safety-overshooting-period=$(MACHINE_SAFETY_OVERSHOOTING_PERIOD) \
 			--leader-elect=$(LEADER_ELECT) \
-			--v=3
+			--v=5
 
 #################################################################
 # Rules related to binary build, Docker image build and release #
