@@ -13,7 +13,6 @@ import (
 	"sigs.k8s.io/kustomize/api/internal/utils"
 	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/kustomize/kyaml/kio"
-	"sigs.k8s.io/kustomize/kyaml/kio/kioutil"
 	"sigs.k8s.io/kustomize/kyaml/resid"
 	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
 	"sigs.k8s.io/yaml"
@@ -23,10 +22,11 @@ import (
 // paired with metadata used by kustomize.
 type Resource struct {
 	kyaml.RNode
+	options     *types.GenArgs
+	refBy       []resid.ResId
 	refVarNames []string
 }
 
-// nolint
 var BuildAnnotations = []string{
 	utils.BuildAnnotationPreviousKinds,
 	utils.BuildAnnotationPreviousNames,
@@ -35,16 +35,6 @@ var BuildAnnotations = []string{
 	utils.BuildAnnotationPreviousNamespaces,
 	utils.BuildAnnotationAllowNameChange,
 	utils.BuildAnnotationAllowKindChange,
-	utils.BuildAnnotationsRefBy,
-	utils.BuildAnnotationsGenBehavior,
-	utils.BuildAnnotationsGenAddHashSuffix,
-
-	kioutil.PathAnnotation,
-	kioutil.IndexAnnotation,
-	kioutil.SeqIndentAnnotation,
-
-	kioutil.LegacyPathAnnotation,
-	kioutil.LegacyIndexAnnotation,
 }
 
 func (r *Resource) ResetRNode(incoming *Resource) {
@@ -90,8 +80,6 @@ func (r *Resource) DeepCopy() *Resource {
 // CopyMergeMetaDataFieldsFrom copies everything but the non-metadata in
 // the resource.
 // TODO: move to RNode, use GetMeta to improve performance.
-// TODO: make a version of mergeStringMaps that is build-annotation aware
-//   to avoid repeatedly setting refby and genargs annotations
 // Must remove the kustomize bit at the end.
 func (r *Resource) CopyMergeMetaDataFieldsFrom(other *Resource) error {
 	if err := r.SetLabels(
@@ -99,7 +87,7 @@ func (r *Resource) CopyMergeMetaDataFieldsFrom(other *Resource) error {
 		return fmt.Errorf("copyMerge cannot set labels - %w", err)
 	}
 	if err := r.SetAnnotations(
-		mergeStringMapsWithBuildAnnotations(other.GetAnnotations(), r.GetAnnotations())); err != nil {
+		mergeStringMaps(other.GetAnnotations(), r.GetAnnotations())); err != nil {
 		return fmt.Errorf("copyMerge cannot set annotations - %w", err)
 	}
 	if err := r.SetName(other.GetName()); err != nil {
@@ -113,6 +101,8 @@ func (r *Resource) CopyMergeMetaDataFieldsFrom(other *Resource) error {
 }
 
 func (r *Resource) copyKustomizeSpecificFields(other *Resource) {
+	r.options = other.options
+	r.refBy = other.copyRefBy()
 	r.refVarNames = copyStringSlice(other.refVarNames)
 }
 
@@ -154,16 +144,25 @@ func (r *Resource) ErrIfNotEquals(o *Resource) error {
 func (r *Resource) ReferencesEqual(other *Resource) bool {
 	setSelf := make(map[resid.ResId]bool)
 	setOther := make(map[resid.ResId]bool)
-	for _, ref := range other.GetRefBy() {
+	for _, ref := range other.refBy {
 		setOther[ref] = true
 	}
-	for _, ref := range r.GetRefBy() {
+	for _, ref := range r.refBy {
 		if _, ok := setOther[ref]; !ok {
 			return false
 		}
 		setSelf[ref] = true
 	}
 	return len(setSelf) == len(setOther)
+}
+
+func (r *Resource) copyRefBy() []resid.ResId {
+	if r.refBy == nil {
+		return nil
+	}
+	s := make([]resid.ResId, len(r.refBy))
+	copy(s, r.refBy)
+	return s
 }
 
 func copyStringSlice(s []string) []string {
@@ -251,36 +250,32 @@ func (r *Resource) setPreviousId(ns string, n string, k string) *Resource {
 
 // AllowNameChange allows name changes to the resource.
 func (r *Resource) AllowNameChange() {
-	r.enable(utils.BuildAnnotationAllowNameChange)
+	annotations := r.GetAnnotations()
+	annotations[utils.BuildAnnotationAllowNameChange] = utils.Allowed
+	if err := r.SetAnnotations(annotations); err != nil {
+		panic(err)
+	}
 }
 
-// NameChangeAllowed checks if a patch resource is allowed to change another resource's name.
 func (r *Resource) NameChangeAllowed() bool {
-	return r.isEnabled(utils.BuildAnnotationAllowNameChange)
+	annotations := r.GetAnnotations()
+	v, ok := annotations[utils.BuildAnnotationAllowNameChange]
+	return ok && v == utils.Allowed
 }
 
 // AllowKindChange allows kind changes to the resource.
 func (r *Resource) AllowKindChange() {
-	r.enable(utils.BuildAnnotationAllowKindChange)
-}
-
-// KindChangeAllowed checks if a patch resource is allowed to change another resource's kind.
-func (r *Resource) KindChangeAllowed() bool {
-	return r.isEnabled(utils.BuildAnnotationAllowKindChange)
-}
-
-func (r *Resource) isEnabled(annoKey string) bool {
 	annotations := r.GetAnnotations()
-	v, ok := annotations[annoKey]
-	return ok && v == utils.Enabled
-}
-
-func (r *Resource) enable(annoKey string) {
-	annotations := r.GetAnnotations()
-	annotations[annoKey] = utils.Enabled
+	annotations[utils.BuildAnnotationAllowKindChange] = utils.Allowed
 	if err := r.SetAnnotations(annotations); err != nil {
 		panic(err)
 	}
+}
+
+func (r *Resource) KindChangeAllowed() bool {
+	annotations := r.GetAnnotations()
+	v, ok := annotations[utils.BuildAnnotationAllowKindChange]
+	return ok && v == utils.Allowed
 }
 
 // String returns resource as JSON.
@@ -289,7 +284,7 @@ func (r *Resource) String() string {
 	if err != nil {
 		return "<" + err.Error() + ">"
 	}
-	return strings.TrimSpace(string(bs))
+	return strings.TrimSpace(string(bs)) + r.options.String()
 }
 
 // AsYAML returns the resource in Yaml form.
@@ -311,34 +306,20 @@ func (r *Resource) MustYaml() string {
 	return string(yml)
 }
 
-// Behavior returns the behavior for the resource.
-func (r *Resource) Behavior() types.GenerationBehavior {
-	annotations := r.GetAnnotations()
-	if v, ok := annotations[utils.BuildAnnotationsGenBehavior]; ok {
-		return types.NewGenerationBehavior(v)
-	}
-	return types.NewGenerationBehavior("")
+// SetOptions updates the generator options for the resource.
+func (r *Resource) SetOptions(o *types.GenArgs) {
+	r.options = o
 }
 
-// SetBehavior sets the behavior for the resource.
-func (r *Resource) SetBehavior(behavior types.GenerationBehavior) {
-	annotations := r.GetAnnotations()
-	annotations[utils.BuildAnnotationsGenBehavior] = behavior.String()
-	if err := r.SetAnnotations(annotations); err != nil {
-		panic(err)
-	}
+// Behavior returns the behavior for the resource.
+func (r *Resource) Behavior() types.GenerationBehavior {
+	return r.options.Behavior()
 }
 
 // NeedHashSuffix returns true if a resource content
 // hash should be appended to the name of the resource.
 func (r *Resource) NeedHashSuffix() bool {
-	return r.isEnabled(utils.BuildAnnotationsGenAddHashSuffix)
-}
-
-// EnableHashSuffix marks the resource as needing a content
-// hash to be appended to the name of the resource.
-func (r *Resource) EnableHashSuffix() {
-	r.enable(utils.BuildAnnotationsGenAddHashSuffix)
+	return r.options != nil && r.options.ShouldAddHashSuffixToName()
 }
 
 // OrgId returns the original, immutable ResId for the resource.
@@ -382,18 +363,12 @@ func (r *Resource) CurId() resid.ResId {
 
 // GetRefBy returns the ResIds that referred to current resource
 func (r *Resource) GetRefBy() []resid.ResId {
-	var resIds []resid.ResId
-	asStrings := r.getCsvAnnotation(utils.BuildAnnotationsRefBy)
-	for _, s := range asStrings {
-		resIds = append(resIds, resid.FromString(s))
-	}
-	return resIds
+	return r.refBy
 }
 
 // AppendRefBy appends a ResId into the refBy list
-// Using any type except fmt.Stringer here results in a compilation error
-func (r *Resource) AppendRefBy(id fmt.Stringer) {
-	r.appendCsvAnnotation(utils.BuildAnnotationsRefBy, id.String())
+func (r *Resource) AppendRefBy(id resid.ResId) {
+	r.refBy = append(r.refBy, id)
 }
 
 // GetRefVarNames returns vars that refer to current resource
@@ -446,20 +421,6 @@ func mergeStringMaps(maps ...map[string]string) map[string]string {
 		for key, value := range m {
 			result[key] = value
 		}
-	}
-	return result
-}
-
-func mergeStringMapsWithBuildAnnotations(maps ...map[string]string) map[string]string {
-	result := mergeStringMaps(maps...)
-	for i := range BuildAnnotations {
-		if len(maps) > 0 {
-			if v, ok := maps[0][BuildAnnotations[i]]; ok {
-				result[BuildAnnotations[i]] = v
-				continue
-			}
-		}
-		delete(result, BuildAnnotations[i])
 	}
 	return result
 }

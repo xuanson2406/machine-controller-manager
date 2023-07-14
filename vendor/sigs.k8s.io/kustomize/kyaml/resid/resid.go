@@ -4,7 +4,6 @@
 package resid
 
 import (
-	"reflect"
 	"strings"
 )
 
@@ -129,10 +128,4 @@ func (id ResId) EffectiveNamespace() string {
 		return DefaultNamespace
 	}
 	return id.Namespace
-}
-
-// IsEmpty returns true of all of the id's fields are
-// empty strings
-func (id ResId) IsEmpty() bool {
-	return reflect.DeepEqual(id, ResId{})
 }

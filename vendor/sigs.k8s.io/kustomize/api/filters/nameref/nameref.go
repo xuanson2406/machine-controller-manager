@@ -56,7 +56,6 @@ func (f Filter) run(node *yaml.RNode) (*yaml.RNode, error) {
 		// sanity check.
 		return nil, err
 	}
-	f.NameFieldToUpdate.Gvk = f.Referrer.GetGvk()
 	if err := node.PipeE(fieldspec.Filter{
 		FieldSpec: f.NameFieldToUpdate,
 		SetValue:  f.set,

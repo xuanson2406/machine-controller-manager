@@ -5,7 +5,6 @@ package container
 
 import (
 	"fmt"
-	"os"
 
 	runtimeexec "sigs.k8s.io/kustomize/kyaml/fn/runtime/exec"
 	"sigs.k8s.io/kustomize/kyaml/fn/runtime/runtimeutil"
@@ -140,27 +139,19 @@ func (c Filter) GetExit() error {
 }
 
 func (c *Filter) Filter(nodes []*yaml.RNode) ([]*yaml.RNode, error) {
-	if err := c.setupExec(); err != nil {
-		return nil, err
-	}
+	c.setupExec()
 	return c.Exec.Filter(nodes)
 }
 
-func (c *Filter) setupExec() error {
+func (c *Filter) setupExec() {
 	// don't init 2x
 	if c.Exec.Path != "" {
-		return nil
+		return
 	}
-	wd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	c.Exec.WorkingDir = wd
 
 	path, args := c.getCommand()
 	c.Exec.Path = path
 	c.Exec.Args = args
-	return nil
 }
 
 // getArgs returns the command + args to run to spawn the container

@@ -200,17 +200,11 @@ func appendEscapedText(buf []byte, text string) []byte {
 func mustParse(f string, typ oid.Oid, s []byte) time.Time {
 	str := string(s)
 
-	// Check for a minute and second offset in the timezone.
-	if typ == oid.T_timestamptz || typ == oid.T_timetz {
-		for i := 3; i <= 6; i += 3 {
-			if str[len(str)-i] == ':' {
-				f += ":00"
-				continue
-			}
-			break
-		}
+	// check for a 30-minute-offset timezone
+	if (typ == oid.T_timestamptz || typ == oid.T_timetz) &&
+		str[len(str)-3] == ':' {
+		f += ":00"
 	}
-
 	// Special case for 24:00 time.
 	// Unfortunately, golang does not parse 24:00 as a proper time.
 	// In this case, we want to try "round to the next day", to differentiate.
@@ -559,7 +553,7 @@ func parseBytea(s []byte) (result []byte, err error) {
 				if len(s) < 4 {
 					return nil, fmt.Errorf("invalid bytea sequence %v", s)
 				}
-				r, err := strconv.ParseUint(string(s[1:4]), 8, 8)
+				r, err := strconv.ParseInt(string(s[1:4]), 8, 9)
 				if err != nil {
 					return nil, fmt.Errorf("could not parse bytea value: %s", err.Error())
 				}

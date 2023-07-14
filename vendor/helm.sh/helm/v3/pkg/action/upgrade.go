@@ -112,21 +112,18 @@ type resultMessage struct {
 
 // NewUpgrade creates a new Upgrade object with the given configuration.
 func NewUpgrade(cfg *Configuration) *Upgrade {
-	up := &Upgrade{
+	return &Upgrade{
 		cfg: cfg,
 	}
-	up.ChartPathOptions.registryClient = cfg.RegistryClient
-
-	return up
 }
 
-// Run executes the upgrade on the given release.
+// Run executes the upgrade on the given release
 func (u *Upgrade) Run(name string, chart *chart.Chart, vals map[string]interface{}) (*release.Release, error) {
 	ctx := context.Background()
 	return u.RunWithContext(ctx, name, chart, vals)
 }
 
-// RunWithContext executes the upgrade on the given release with context.
+// Run executes the upgrade on the given release with context.
 func (u *Upgrade) RunWithContext(ctx context.Context, name string, chart *chart.Chart, vals map[string]interface{}) (*release.Release, error) {
 	if err := u.cfg.KubeClient.IsReachable(); err != nil {
 		return nil, err
@@ -324,17 +321,11 @@ func (u *Upgrade) performUpgrade(ctx context.Context, originalRelease, upgradedR
 		return nil, err
 	}
 	rChan := make(chan resultMessage)
-	ctxChan := make(chan resultMessage)
-	doneChan := make(chan interface{})
 	go u.releasingUpgrade(rChan, upgradedRelease, current, target, originalRelease)
-	go u.handleContext(ctx, doneChan, ctxChan, upgradedRelease)
-	select {
-	case result := <-rChan:
-		doneChan <- true
-		return result.r, result.e
-	case result := <-ctxChan:
-		return result.r, result.e
-	}
+	go u.handleContext(ctx, rChan, upgradedRelease)
+	result := <-rChan
+
+	return result.r, result.e
 }
 
 // Function used to lock the Mutex, this is important for the case when the atomic flag is set.
@@ -350,17 +341,13 @@ func (u *Upgrade) reportToPerformUpgrade(c chan<- resultMessage, rel *release.Re
 }
 
 // Setup listener for SIGINT and SIGTERM
-func (u *Upgrade) handleContext(ctx context.Context, done chan interface{}, c chan<- resultMessage, upgradedRelease *release.Release) {
-	go func() {
-		select {
-		case <-ctx.Done():
-			err := ctx.Err()
+func (u *Upgrade) handleContext(ctx context.Context, c chan<- resultMessage, upgradedRelease *release.Release) {
 
-			// when the atomic flag is set the ongoing release finish first and doesn't give time for the rollback happens.
-			u.reportToPerformUpgrade(c, upgradedRelease, kube.ResourceList{}, err)
-		case <-done:
-			return
-		}
+	go func() {
+		<-ctx.Done()
+		err := ctx.Err()
+		// when the atomic flag is set the ongoing release finish first and doesn't give time for the rollback happens.
+		u.reportToPerformUpgrade(c, upgradedRelease, kube.ResourceList{}, err)
 	}()
 }
 func (u *Upgrade) releasingUpgrade(c chan<- resultMessage, upgradedRelease *release.Release, current kube.ResourceList, target kube.ResourceList, originalRelease *release.Release) {

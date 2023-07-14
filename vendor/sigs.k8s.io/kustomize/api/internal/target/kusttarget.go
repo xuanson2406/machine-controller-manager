@@ -10,17 +10,14 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-
 	"sigs.k8s.io/kustomize/api/builtins"
 	"sigs.k8s.io/kustomize/api/ifc"
 	"sigs.k8s.io/kustomize/api/internal/accumulator"
 	"sigs.k8s.io/kustomize/api/internal/plugins/builtinconfig"
 	"sigs.k8s.io/kustomize/api/internal/plugins/builtinhelpers"
 	"sigs.k8s.io/kustomize/api/internal/plugins/loader"
-	"sigs.k8s.io/kustomize/api/internal/utils"
 	"sigs.k8s.io/kustomize/api/konfig"
 	"sigs.k8s.io/kustomize/api/resmap"
-	"sigs.k8s.io/kustomize/api/resource"
 	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/kustomize/kyaml/openapi"
 	"sigs.k8s.io/yaml"
@@ -41,13 +38,11 @@ func NewKustTarget(
 	validator ifc.Validator,
 	rFactory *resmap.Factory,
 	pLdr *loader.Loader) *KustTarget {
-	pLdrCopy := *pLdr
-	pLdrCopy.SetWorkDir(ldr.Root())
 	return &KustTarget{
 		ldr:       ldr,
 		validator: validator,
 		rFactory:  rFactory,
-		pLdr:      &pLdrCopy,
+		pLdr:      pLdr,
 	}
 }
 
@@ -113,7 +108,7 @@ func (kt *KustTarget) MakeCustomizedResMap() (resmap.ResMap, error) {
 }
 
 func (kt *KustTarget) makeCustomizedResMap() (resmap.ResMap, error) {
-	ra, err := kt.AccumulateTarget(&resource.Origin{})
+	ra, err := kt.AccumulateTarget()
 	if err != nil {
 		return nil, err
 	}
@@ -156,29 +151,20 @@ func (kt *KustTarget) addHashesToNames(
 // holding customized resources and the data/rules used
 // to do so.  The name back references and vars are
 // not yet fixed.
-// The origin parameter is used through the recursive calls
-// to annotate each resource with information about where
-// the resource came from, e.g. the file and/or the repository
-// it originated from.
-// As an entrypoint, one can pass an empty resource.Origin object to
-// AccumulateTarget. As AccumulateTarget moves recursively
-// through kustomization directories, it updates `origin.path`
-// accordingly. When a remote base is found, it updates `origin.repo`
-// and `origin.ref` accordingly.
-func (kt *KustTarget) AccumulateTarget(origin *resource.Origin) (
+func (kt *KustTarget) AccumulateTarget() (
 	ra *accumulator.ResAccumulator, err error) {
-	return kt.accumulateTarget(accumulator.MakeEmptyAccumulator(), origin)
+	return kt.accumulateTarget(accumulator.MakeEmptyAccumulator())
 }
 
 // ra should be empty when this KustTarget is a Kustomization, or the ra of the parent if this KustTarget is a Component
 // (or empty if the Component does not have a parent).
-func (kt *KustTarget) accumulateTarget(ra *accumulator.ResAccumulator, origin *resource.Origin) (
+func (kt *KustTarget) accumulateTarget(ra *accumulator.ResAccumulator) (
 	resRa *accumulator.ResAccumulator, err error) {
-	ra, err = kt.accumulateResources(ra, kt.kustomization.Resources, origin)
+	ra, err = kt.accumulateResources(ra, kt.kustomization.Resources)
 	if err != nil {
 		return nil, errors.Wrap(err, "accumulating resources")
 	}
-	ra, err = kt.accumulateComponents(ra, kt.kustomization.Components, origin)
+	ra, err = kt.accumulateComponents(ra, kt.kustomization.Components)
 	if err != nil {
 		return nil, errors.Wrap(err, "accumulating components")
 	}
@@ -219,24 +205,7 @@ func (kt *KustTarget) accumulateTarget(ra *accumulator.ResAccumulator, origin *r
 		return nil, errors.Wrapf(
 			err, "merging vars %v", kt.kustomization.Vars)
 	}
-	err = kt.IgnoreLocal(ra)
-	if err != nil {
-		return nil, err
-	}
 	return ra, nil
-}
-
-// IgnoreLocal drops the local resource by checking the annotation "config.kubernetes.io/local-config".
-func (kt *KustTarget) IgnoreLocal(ra *accumulator.ResAccumulator) error {
-	rf := kt.rFactory.RF()
-	if rf.IncludeLocalConfigs {
-		return nil
-	}
-	remainRes, err := rf.DropLocalNodes(ra.ResMap().ToRNodeSlice())
-	if err != nil {
-		return err
-	}
-	return ra.Intersection(kt.rFactory.FromResourceSlice(remainRes))
 }
 
 func (kt *KustTarget) runGenerators(
@@ -278,7 +247,7 @@ func (kt *KustTarget) configureExternalGenerators() ([]resmap.Generator, error) 
 		}
 		ra.AppendAll(rm)
 	}
-	ra, err := kt.accumulateResources(ra, generatorPaths, &resource.Origin{})
+	ra, err := kt.accumulateResources(ra, generatorPaths)
 	if err != nil {
 		return nil, err
 	}
@@ -314,7 +283,8 @@ func (kt *KustTarget) configureExternalTransformers(transformers []string) ([]re
 		}
 		ra.AppendAll(rm)
 	}
-	ra, err := kt.accumulateResources(ra, transformerPaths, &resource.Origin{})
+	ra, err := kt.accumulateResources(ra, transformerPaths)
+
 	if err != nil {
 		return nil, err
 	}
@@ -362,16 +332,16 @@ func (kt *KustTarget) removeValidatedByLabel(rm resmap.ResMap) error {
 // accumulateResources fills the given resourceAccumulator
 // with resources read from the given list of paths.
 func (kt *KustTarget) accumulateResources(
-	ra *accumulator.ResAccumulator, paths []string, origin *resource.Origin) (*accumulator.ResAccumulator, error) {
+	ra *accumulator.ResAccumulator, paths []string) (*accumulator.ResAccumulator, error) {
 	for _, path := range paths {
 		// try loading resource as file then as base (directory or git repository)
-		if errF := kt.accumulateFile(ra, path, origin); errF != nil {
+		if errF := kt.accumulateFile(ra, path); errF != nil {
 			ldr, err := kt.ldr.New(path)
 			if err != nil {
 				return nil, errors.Wrapf(
 					err, "accumulation err='%s'", errF.Error())
 			}
-			ra, err = kt.accumulateDirectory(ra, ldr, origin.Append(path), false)
+			ra, err = kt.accumulateDirectory(ra, ldr, false)
 			if err != nil {
 				return nil, errors.Wrapf(
 					err, "accumulation err='%s'", errF.Error())
@@ -384,7 +354,7 @@ func (kt *KustTarget) accumulateResources(
 // accumulateResources fills the given resourceAccumulator
 // with resources read from the given list of paths.
 func (kt *KustTarget) accumulateComponents(
-	ra *accumulator.ResAccumulator, paths []string, origin *resource.Origin) (*accumulator.ResAccumulator, error) {
+	ra *accumulator.ResAccumulator, paths []string) (*accumulator.ResAccumulator, error) {
 	for _, path := range paths {
 		// Components always refer to directories
 		ldr, errL := kt.ldr.New(path)
@@ -392,8 +362,7 @@ func (kt *KustTarget) accumulateComponents(
 			return nil, fmt.Errorf("loader.New %q", errL)
 		}
 		var errD error
-		origin.Path = filepath.Join(origin.Path, path)
-		ra, errD = kt.accumulateDirectory(ra, ldr, origin, true)
+		ra, errD = kt.accumulateDirectory(ra, ldr, true)
 		if errD != nil {
 			return nil, fmt.Errorf("accumulateDirectory: %q", errD)
 		}
@@ -402,7 +371,7 @@ func (kt *KustTarget) accumulateComponents(
 }
 
 func (kt *KustTarget) accumulateDirectory(
-	ra *accumulator.ResAccumulator, ldr ifc.Loader, origin *resource.Origin, isComponent bool) (*accumulator.ResAccumulator, error) {
+	ra *accumulator.ResAccumulator, ldr ifc.Loader, isComponent bool) (*accumulator.ResAccumulator, error) {
 	defer ldr.Cleanup()
 	subKt := NewKustTarget(ldr, kt.validator, kt.rFactory, kt.pLdr)
 	err := subKt.Load()
@@ -410,7 +379,6 @@ func (kt *KustTarget) accumulateDirectory(
 		return nil, errors.Wrapf(
 			err, "couldn't make target for path '%s'", ldr.Root())
 	}
-	subKt.kustomization.BuildMetadata = kt.kustomization.BuildMetadata
 	var bytes []byte
 	path := ldr.Root()
 	if openApiPath, exists := subKt.Kustomization().OpenAPI["path"]; exists {
@@ -434,12 +402,12 @@ func (kt *KustTarget) accumulateDirectory(
 	var subRa *accumulator.ResAccumulator
 	if isComponent {
 		// Components don't create a new accumulator: the kustomization directives are added to the current accumulator
-		subRa, err = subKt.accumulateTarget(ra, origin)
+		subRa, err = subKt.accumulateTarget(ra)
 		ra = accumulator.MakeEmptyAccumulator()
 	} else {
 		// Child Kustomizations create a new accumulator which resolves their kustomization directives, which will later
 		// be merged into the current accumulator.
-		subRa, err = subKt.AccumulateTarget(origin)
+		subRa, err = subKt.AccumulateTarget()
 	}
 	if err != nil {
 		return nil, errors.Wrapf(
@@ -454,17 +422,10 @@ func (kt *KustTarget) accumulateDirectory(
 }
 
 func (kt *KustTarget) accumulateFile(
-	ra *accumulator.ResAccumulator, path string, origin *resource.Origin) error {
+	ra *accumulator.ResAccumulator, path string) error {
 	resources, err := kt.rFactory.FromFile(kt.ldr, path)
 	if err != nil {
 		return errors.Wrapf(err, "accumulating resources from '%s'", path)
-	}
-	if utils.StringSliceContains(kt.kustomization.BuildMetadata, "originAnnotations") {
-		origin = origin.Append(path)
-		err = resources.AnnotateAll(utils.OriginAnnotation, origin.String())
-		if err != nil {
-			return errors.Wrapf(err, "cannot add path annotation for '%s'", path)
-		}
 	}
 	err = ra.AppendAll(resources)
 	if err != nil {

@@ -123,11 +123,11 @@ func (n *fsNode) addFile(name string, c []byte) (result *fsNode, err error) {
 		if result.offset != nil {
 			return nil, fmt.Errorf("cannot add already opened file '%s'", n.Path())
 		}
-		result.content = append(result.content[:0], c...)
+		result.content = c
 		return result, nil
 	}
 	result = &fsNode{
-		content: append([]byte(nil), c...),
+		content: c,
 		parent:  parent,
 	}
 	parent.dir[fileName] = result
@@ -612,7 +612,6 @@ func (n *fsNode) RegExpGlob(pattern string) ([]string, error) {
 // This is how /bin/ls behaves.
 func (n *fsNode) Glob(pattern string) ([]string, error) {
 	var result []string
-	var allFiles []string
 	err := n.WalkMe(func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -623,18 +622,13 @@ func (n *fsNode) Glob(pattern string) ([]string, error) {
 				return err
 			}
 			if match {
-				allFiles = append(allFiles, path)
+				result = append(result, path)
 			}
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
-	}
-	if IsHiddenFilePath(pattern) {
-		result = allFiles
-	} else {
-		result = RemoveHiddenFiles(allFiles)
 	}
 	sort.Strings(result)
 	return result, nil

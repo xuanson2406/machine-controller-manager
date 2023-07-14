@@ -9,7 +9,6 @@ import (
 	"reflect"
 
 	"github.com/pkg/errors"
-	"sigs.k8s.io/kustomize/api/filters/annotations"
 	"sigs.k8s.io/kustomize/api/resource"
 	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/kustomize/kyaml/kio"
@@ -532,19 +531,6 @@ func (m *resWrangler) appendReplaceOrMerge(res *resource.Resource) error {
 	}
 }
 
-// AnnotateAll implements ResMap
-func (m *resWrangler) AnnotateAll(key string, value string) error {
-	return m.ApplyFilter(annotations.Filter{
-		Annotations: map[string]string{
-			key: value,
-		},
-		FsSlice: []types.FieldSpec{{
-			Path:               "metadata/annotations",
-			CreateIfNotPresent: true,
-		}},
-	})
-}
-
 // Select returns a list of resources that
 // are selected by a Selector
 func (m *resWrangler) Select(s types.Selector) ([]*resource.Resource, error) {
@@ -605,16 +591,6 @@ func (m *resWrangler) ToRNodeSlice() []*kyaml.RNode {
 		result[i] = m.rList[i].Copy()
 	}
 	return result
-}
-
-// DeAnchor implements ResMap.
-func (m *resWrangler) DeAnchor() (err error) {
-	for i := range m.rList {
-		if err = m.rList[i].DeAnchor(); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // ApplySmPatch applies the patch, and errors on Id collisions.
