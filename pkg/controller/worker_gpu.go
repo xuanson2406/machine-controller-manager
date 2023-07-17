@@ -63,8 +63,10 @@ type ProviderSpec struct {
 	Zone               string `json:"zone,omitempty"` // this field will use in future version
 }
 
-func (c *controller) CheckGPUWorkerGroup(machine *v1alpha1.Machine) (bool, error) {
-	machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
+func (c *controller) CheckGPUWorkerGroup(ctx context.Context, machinedeployment *v1alpha1.MachineDeployment) (bool, error) {
+
+	machineClassInterface := c.controlMachineClient.MachineClasses(c.namespace)
+	machineClass, err := machineClassInterface.Get(ctx, machinedeployment.Spec.Template.Spec.Class.Name, metav1.GetOptions{})
 	if err != nil {
 		klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machineClass.Name, err)
 		return false, err
@@ -74,24 +76,25 @@ func (c *controller) CheckGPUWorkerGroup(machine *v1alpha1.Machine) (bool, error
 		return false, err
 	}
 	if providerSpec.VGPU == "gpu" {
+		klog.V(3).Infof("Worker group %s is enable GPU - waiting for install GPU chart to shoot", machinedeployment.Name)
 		return true, nil
 	}
 	return false, nil
 }
 
-func (c *controller) InstallChartForShoot(ctx context.Context, machine *v1alpha1.Machine) error {
+func (c *controller) InstallChartForShoot(ctx context.Context, machineDeployment *v1alpha1.MachineDeployment) error {
 	var (
 		url       = "https://registry.fke.fptcloud.com/chartrepo/xplat-fke"
 		repoName  = "xplat-fke"
-		shootName = machine.Namespace
+		shootName = machineDeployment.Namespace
 		strategy  string
 	)
-	EnableGPU, err := c.CheckGPUWorkerGroup(machine)
+	EnableGPU, err := c.CheckGPUWorkerGroup(ctx, machineDeployment)
 	if err != nil {
 		return err
 	}
 	if !EnableGPU {
-		klog.Infof("Shoot cluster %s is disable GPU - skipping install helm chart to shoot\n", shootName)
+		klog.V(3).Infof("Shoot cluster %s is disable GPU - skipping install helm chart to shoot\n", shootName)
 		return nil
 	}
 	kubeconfigFile := os.Getenv("HOME") + "/kubeconfig/" + shootName
@@ -125,9 +128,9 @@ func (c *controller) InstallChartForShoot(ctx context.Context, machine *v1alpha1
 		klog.Infof("Shoot cluster %s have already installed charts GPU - skipping install helm chart to shoot\n", shootName)
 		return nil
 	}
-	klog.Infof("Shoot cluster %s is enabled GPU - starting install helm chart to shoot\n", shootName)
+	klog.V(3).Infof("Shoot cluster %s is enabled GPU - starting install helm chart to shoot\n", shootName)
 
-	label := c.getLabelWorkerGroup(ctx, machine)
+	label := c.getLabelWorkerGroup(ctx, machineDeployment)
 	if label == nil {
 		strategy = "mig.strategy=none"
 	} else {
@@ -506,60 +509,60 @@ func DecodeProviderSpecFromMachineClass(machineClass *v1alpha1.MachineClass) (*P
 
 	return providerSpec, nil
 }
-func (c *controller) getLabelWorkerGroup(ctx context.Context, machine *v1alpha1.Machine) map[string]string {
-	machineDeployment := c.getMachineDeploymentForMachine(ctx, machine)
+func (c *controller) getLabelWorkerGroup(ctx context.Context, machineDeployment *v1alpha1.MachineDeployment) map[string]string {
+	// machineDeployment := c.getMachineDeploymentForMachine(ctx, machine)
 	label := make(map[string]string)
 	label = machineDeployment.Spec.Template.Spec.NodeTemplateSpec.Labels
 	return label
 }
 
 // getDeploymentForMachine returns the deployment managing the given Machine.
-func (c *controller) getMachineDeploymentForMachine(ctx context.Context, machine *v1alpha1.Machine) *v1alpha1.MachineDeployment {
-	// Find the owning machine set
-	var is *v1alpha1.MachineSet
-	var err error
-	controllerRef := metav1.GetControllerOf(machine)
-	if controllerRef == nil {
-		// No controller owns this Machine.
-		return nil
-	}
-	if controllerRef.Kind != "MachineSet" { //TODO: Remove hardcoded string
-		// Not a Machine owned by a machine set.
-		return nil
-	}
-	is, err = c.controlMachineClient.MachineSets(machine.Namespace).Get(ctx, controllerRef.Name, metav1.GetOptions{})
-	if err != nil || is.UID != controllerRef.UID {
-		klog.V(4).Infof("Cannot get machineset %q for machine %q: %v", controllerRef.Name, machine.Name, err)
-		return nil
-	}
+// func (c *controller) getMachineDeploymentForMachine(ctx context.Context, machine *v1alpha1.Machine) *v1alpha1.MachineDeployment {
+// 	// Find the owning machine set
+// 	var is *v1alpha1.MachineSet
+// 	var err error
+// 	controllerRef := metav1.GetControllerOf(machine)
+// 	if controllerRef == nil {
+// 		// No controller owns this Machine.
+// 		return nil
+// 	}
+// 	if controllerRef.Kind != "MachineSet" { //TODO: Remove hardcoded string
+// 		// Not a Machine owned by a machine set.
+// 		return nil
+// 	}
+// 	is, err = c.controlMachineClient.MachineSets(machine.Namespace).Get(ctx, controllerRef.Name, metav1.GetOptions{})
+// 	if err != nil || is.UID != controllerRef.UID {
+// 		klog.V(4).Infof("Cannot get machineset %q for machine %q: %v", controllerRef.Name, machine.Name, err)
+// 		return nil
+// 	}
 
-	// Now find the Deployment that owns that MachineSet.
-	controllerRef = metav1.GetControllerOf(is)
-	if controllerRef == nil {
-		return nil
-	}
-	return c.resolveDeploymentControllerRef(is.Namespace, controllerRef)
-}
+// 	// Now find the Deployment that owns that MachineSet.
+// 	controllerRef = metav1.GetControllerOf(is)
+// 	if controllerRef == nil {
+// 		return nil
+// 	}
+// 	return c.resolveDeploymentControllerRef(is.Namespace, controllerRef)
+// }
 
-// resolveControllerRef returns the controller referenced by a ControllerRef,
-// or nil if the ControllerRef could not be resolved to a matching controller
-// of the correct Kind.
-func (c *controller) resolveDeploymentControllerRef(namespace string, controllerRef *metav1.OwnerReference) *v1alpha1.MachineDeployment {
-	// We can't look up by UID, so look up by Name and then verify UID.
-	// Don't even try to look up by Name if it's the wrong Kind.
-	// controllerKind contains the schema.GroupVersionKind for this controller type.
-	var controllerKind = v1alpha1.SchemeGroupVersion.WithKind("MachineDeployment")
-	if controllerRef.Kind != controllerKind.Kind {
-		return nil
-	}
-	d, err := c.controlMachineClient.MachineDeployments(namespace).Get(context.TODO(), controllerRef.Name, metav1.GetOptions{})
-	if err != nil {
-		return nil
-	}
-	if d.UID != controllerRef.UID {
-		// The controller we found with this Name is not the same one that the
-		// ControllerRef points to.
-		return nil
-	}
-	return d
-}
+// // resolveControllerRef returns the controller referenced by a ControllerRef,
+// // or nil if the ControllerRef could not be resolved to a matching controller
+// // of the correct Kind.
+// func (c *controller) resolveDeploymentControllerRef(namespace string, controllerRef *metav1.OwnerReference) *v1alpha1.MachineDeployment {
+// 	// We can't look up by UID, so look up by Name and then verify UID.
+// 	// Don't even try to look up by Name if it's the wrong Kind.
+// 	// controllerKind contains the schema.GroupVersionKind for this controller type.
+// 	var controllerKind = v1alpha1.SchemeGroupVersion.WithKind("MachineDeployment")
+// 	if controllerRef.Kind != controllerKind.Kind {
+// 		return nil
+// 	}
+// 	d, err := c.controlMachineClient.MachineDeployments(namespace).Get(context.TODO(), controllerRef.Name, metav1.GetOptions{})
+// 	if err != nil {
+// 		return nil
+// 	}
+// 	if d.UID != controllerRef.UID {
+// 		// The controller we found with this Name is not the same one that the
+// 		// ControllerRef points to.
+// 		return nil
+// 	}
+// 	return d
+// }
