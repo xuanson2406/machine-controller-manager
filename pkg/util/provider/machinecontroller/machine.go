@@ -21,9 +21,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/gofrs/flock"
+	charterrors "github.com/pkg/errors"
 	machineapi "github.com/xuanson2406/machine-controller-manager/pkg/apis/machine"
 	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/validation"
@@ -31,6 +36,10 @@ import (
 	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machinecodes/codes"
 	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machinecodes/status"
 	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machineutils"
+	"gopkg.in/yaml.v2"
+	"helm.sh/helm/v3/pkg/cli"
+	"helm.sh/helm/v3/pkg/getter"
+	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -643,4 +652,64 @@ func (c *controller) triggerDeletionFlow(ctx context.Context, deleteMachineReque
 
 	klog.V(2).Infof("Machine %q with providerID %q and nodeName %q deleted successfully", machine.Name, getProviderID(machine), getNodeName(machine))
 	return machineutils.LongRetry, nil
+}
+func repoAdd(name, url string, settings *cli.EnvSettings) error {
+	repoFile := settings.RepositoryConfig
+
+	//Ensure the file directory exists as it is required for file locking
+	err := os.MkdirAll(filepath.Dir(repoFile), os.ModePerm)
+	if err != nil && !os.IsExist(err) {
+		return fmt.Errorf("Could not create dir to store chart repository: %v", err)
+	}
+
+	// Acquire a file lock for process synchronization
+	fileLock := flock.New(strings.Replace(repoFile, filepath.Ext(repoFile), ".lock", 1))
+	lockCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	locked, err := fileLock.TryLockContext(lockCtx, time.Second)
+	if err == nil && locked {
+		defer fileLock.Unlock()
+	}
+	if err != nil {
+		return fmt.Errorf("Could not acquire a file lock for process synchronization: %v", err)
+	}
+
+	b, err := ioutil.ReadFile(repoFile)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Could not read chart repository file: %v", err)
+	}
+
+	var f repo.File
+	if err := yaml.Unmarshal(b, &f); err != nil {
+		return fmt.Errorf("Unable to unmarshal repository file: %v", err)
+	}
+
+	if f.Has(name) {
+		// fmt.Printf("repository name (%s) already exists\n", name)
+		klog.Infof("repository name (%s) already exists\n", name)
+		return nil
+	}
+
+	c := repo.Entry{
+		Name: name,
+		URL:  url,
+	}
+
+	r, err := repo.NewChartRepository(&c, getter.All(settings))
+	if err != nil {
+		return fmt.Errorf("Could not construct chart repository: %v", err)
+	}
+
+	if _, err := r.DownloadIndexFile(); err != nil {
+		err := charterrors.Wrapf(err, "looks like %q is not a valid chart repository or cannot be reached", url)
+		return fmt.Errorf("Could not reach repository file: %v", err)
+	}
+
+	f.Update(&c)
+
+	if err := f.WriteFile(repoFile, 0644); err != nil {
+		return fmt.Errorf("Could not write content to chart repository file: %v", err)
+	}
+	// fmt.Printf("%q has been added to your repositories\n", name)
+	return nil
 }
