@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,6 +28,7 @@ import (
 	"helm.sh/helm/v3/pkg/repo"
 	"helm.sh/helm/v3/pkg/strvals"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/klog/v2"
 )
 
@@ -63,12 +63,12 @@ type ProviderSpec struct {
 	Zone               string `json:"zone,omitempty"` // this field will use in future version
 }
 
-func (c *controller) CheckGPUWorkerGroup(ctx context.Context, machinedeployment *v1alpha1.MachineDeployment) (bool, error) {
+func (c *controller) checkGPUWorkerGroup(machinedeployment *v1alpha1.MachineDeployment) (bool, error) {
 
-	machineClassInterface := c.controlMachineClient.MachineClasses(c.namespace)
-	machineClass, err := machineClassInterface.Get(ctx, machinedeployment.Spec.Template.Spec.Class.Name, metav1.GetOptions{})
+	machineClassInterface := c.controlMachineClient.MachineClasses(machinedeployment.Namespace)
+	machineClass, err := machineClassInterface.Get(context.TODO(), machinedeployment.Spec.Template.Spec.Class.Name, metav1.GetOptions{})
 	if err != nil {
-		klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machineClass.Name, err)
+		klog.Errorf("MachineClass %s/%s not found. Skipping. %v", machinedeployment.Namespace, machineClass.Name, err)
 		return false, err
 	}
 	providerSpec, err := DecodeProviderSpecFromMachineClass(machineClass)
@@ -82,14 +82,14 @@ func (c *controller) CheckGPUWorkerGroup(ctx context.Context, machinedeployment 
 	return false, nil
 }
 
-func (c *controller) InstallChartForShoot(ctx context.Context, machineDeployment *v1alpha1.MachineDeployment) error {
+func (c *controller) InstallChartForShoot(machineDeployment *v1alpha1.MachineDeployment) error {
 	var (
 		url       = "https://registry.fke.fptcloud.com/chartrepo/xplat-fke"
 		repoName  = "xplat-fke"
 		shootName = machineDeployment.Namespace
 		strategy  string
 	)
-	EnableGPU, err := c.CheckGPUWorkerGroup(ctx, machineDeployment)
+	EnableGPU, err := c.checkGPUWorkerGroup(machineDeployment)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (c *controller) InstallChartForShoot(ctx context.Context, machineDeployment
 	if err != nil && !os.IsExist(err) {
 		return fmt.Errorf("Could not create dir to store chart repository: [%v]", err)
 	}
-	kubeconfigSecret, err := c.controlCoreClient.CoreV1().Secrets(c.namespace).List(ctx, metav1.ListOptions{})
+	kubeconfigSecret, err := c.controlCoreClient.CoreV1().Secrets(c.namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func (c *controller) InstallChartForShoot(ctx context.Context, machineDeployment
 	}
 	klog.V(3).Infof("Shoot cluster %s is enabled GPU - starting install helm chart to shoot\n", shootName)
 
-	label := c.getLabelWorkerGroup(ctx, machineDeployment)
+	label := c.getLabelWorkerGroup(machineDeployment)
 	if label == nil {
 		strategy = "mig.strategy=none"
 	} else {
@@ -437,9 +437,10 @@ func debug(format string, v ...interface{}) {
 	format = fmt.Sprintf("[debug] %s\n", format)
 	log.Output(2, fmt.Sprintf(format, v...))
 }
+
 func (c *controller) CheckChartInstalled(settings *cli.EnvSettings) (int, error) {
 	actionConfig := new(action.Configuration)
-	if err := actionConfig.Init(settings.RESTClientGetter(), "", os.Getenv("HELM_DRIVER"), debug); err != nil {
+	if err := actionConfig.Init(settings.RESTClientGetter(), "", os.Getenv("HELM_DRIVER"), actionConfig.Log); err != nil {
 		return -1, fmt.Errorf("Unable to init action config to list releases in shoot cluster %s: [%v]", c.namespace, err)
 	}
 	client := action.NewList(actionConfig)
@@ -465,6 +466,7 @@ func (c *controller) CheckChartInstalled(settings *cli.EnvSettings) (int, error)
 	}
 	return CASE, nil
 }
+
 func (c *controller) CleanReleaseFail(kubeconfigFile string) error {
 	settings := CreateSetting("", kubeconfigFile)
 	actionConfig := new(action.Configuration)
@@ -509,7 +511,8 @@ func DecodeProviderSpecFromMachineClass(machineClass *v1alpha1.MachineClass) (*P
 
 	return providerSpec, nil
 }
-func (c *controller) getLabelWorkerGroup(ctx context.Context, machineDeployment *v1alpha1.MachineDeployment) map[string]string {
+
+func (c *controller) getLabelWorkerGroup(machineDeployment *v1alpha1.MachineDeployment) map[string]string {
 	// machineDeployment := c.getMachineDeploymentForMachine(ctx, machine)
 	label := make(map[string]string)
 	label = machineDeployment.Spec.Template.Spec.NodeTemplateSpec.Labels
