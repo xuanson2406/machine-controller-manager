@@ -430,7 +430,7 @@ func (dc *controller) getMachineMapForMachineDeployment(d *v1alpha1.MachineDeplo
 func (dc *controller) reconcileClusterMachineDeployment(key string) error {
 	ctx := context.Background()
 	startTime := time.Now()
-	klog.V(4).Infof("Started syncing machine deployment %q (%v)", key, startTime)
+	klog.Infof("Started syncing machine deployment %q (%v)", key, startTime)
 	defer func() {
 		klog.V(4).Infof("Finished syncing machine deployment %q (%v)", key, time.Since(startTime))
 	}()
@@ -441,18 +441,18 @@ func (dc *controller) reconcileClusterMachineDeployment(key string) error {
 	}
 	deployment, err := dc.controlMachineClient.MachineDeployments(dc.namespace).Get(ctx, name, metav1.GetOptions{})
 	if errors.IsNotFound(err) {
-		klog.V(4).Infof("Deployment %v has been deleted", key)
+		klog.Infof("Deployment %v has been deleted", key)
 		return nil
 	}
 	if err != nil {
 		return err
 	}
 
-	klog.V(3).Infof("Processing the machinedeployment %q (with replicas %d)", deployment.Name, deployment.Spec.Replicas)
+	klog.Infof("Processing the machinedeployment %q (with replicas %d)", deployment.Name, deployment.Spec.Replicas)
 
 	// If MachineDeployment is frozen and no deletion timestamp, don't process it
 	if deployment.Labels["freeze"] == "True" && deployment.DeletionTimestamp == nil {
-		klog.V(3).Infof("MachineDeployment %q is frozen. However, it will still be processed if it there is an scale down event.", deployment.Name)
+		klog.Infof("MachineDeployment %q is frozen. However, it will still be processed if it there is an scale down event.", deployment.Name)
 	}
 
 	// Validate MachineDeployment
@@ -467,6 +467,13 @@ func (dc *controller) reconcileClusterMachineDeployment(key string) error {
 	if validationerr.ToAggregate() != nil && len(validationerr.ToAggregate().Errors()) > 0 {
 		klog.Errorf("Validation of MachineDeployment failed %s", validationerr.ToAggregate().Error())
 		return nil
+	}
+	if deployment.Status.ReadyReplicas == deployment.Spec.Replicas {
+		klog.Infof("Worker Group %s have succesfully reconciled", deployment.Name)
+		err = dc.InstallChartForShoot(ctx, deployment)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Resync the MachineDeployment after 10 minutes to avoid missing out on missed out events
@@ -515,7 +522,7 @@ func (dc *controller) reconcileClusterMachineDeployment(key string) error {
 			dc.deleteMachineDeploymentFinalizers(ctx, d)
 			return nil
 		}
-		klog.V(4).Infof("Deleting all child MachineSets as MachineDeployment %s has set deletionTimestamp", d.Name)
+		klog.Infof("Deleting all child MachineSets as MachineDeployment %s has set deletionTimestamp", d.Name)
 		dc.terminateMachineSets(ctx, machineSets, d)
 		return dc.syncStatusOnly(ctx, d, machineSets, machineMap)
 	}
@@ -546,13 +553,7 @@ func (dc *controller) reconcileClusterMachineDeployment(key string) error {
 	if scalingEvent {
 		return dc.sync(ctx, d, machineSets, machineMap)
 	}
-	if d.Status.ReadyReplicas == d.Status.Replicas {
-		klog.V(3).Infof("Worker Group %s have succesfully reconciled", deployment.Name)
-		err = dc.InstallChartForShoot(deployment)
-		if err != nil {
-			return err
-		}
-	}
+
 	switch d.Spec.Strategy.Type {
 	case v1alpha1.RecreateMachineDeploymentStrategyType:
 		return dc.rolloutRecreate(ctx, d, machineSets, machineMap)

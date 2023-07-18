@@ -29,6 +29,8 @@ import (
 	"helm.sh/helm/v3/pkg/strvals"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 )
 
@@ -63,9 +65,9 @@ type ProviderSpec struct {
 	Zone               string `json:"zone,omitempty"` // this field will use in future version
 }
 
-func (c *controller) checkGPUWorkerGroup(machinedeployment *v1alpha1.MachineDeployment) (bool, error) {
+func (c *controller) checkGPUWorkerGroup(ctx context.Context, machinedeployment *v1alpha1.MachineDeployment) (bool, error) {
 	machineClassInterface := c.controlMachineClient.MachineClasses(machinedeployment.Namespace)
-	machineClass, err := machineClassInterface.Get(context.TODO(), machinedeployment.Spec.Template.Spec.Class.Name, metav1.GetOptions{})
+	machineClass, err := machineClassInterface.Get(ctx, machinedeployment.Spec.Template.Spec.Class.Name, metav1.GetOptions{})
 	if err != nil {
 		klog.Errorf("MachineClass %s/%s not found. Skipping. %v", machinedeployment.Namespace, machineClass.Name, err)
 		return false, err
@@ -75,25 +77,25 @@ func (c *controller) checkGPUWorkerGroup(machinedeployment *v1alpha1.MachineDepl
 		return false, err
 	}
 	if providerSpec.VGPU == "gpu" {
-		klog.V(3).Infof("Worker group %s is enable GPU - waiting for install GPU chart to shoot", machinedeployment.Name)
+		klog.Infof("Worker group %s is enable GPU - waiting for install GPU chart to shoot", machinedeployment.Name)
 		return true, nil
 	}
 	return false, nil
 }
 
-func (c *controller) InstallChartForShoot(machineDeployment *v1alpha1.MachineDeployment) error {
+func (c *controller) InstallChartForShoot(ctx context.Context, machineDeployment *v1alpha1.MachineDeployment) error {
 	var (
 		url       = "https://registry.fke.fptcloud.com/chartrepo/xplat-fke"
 		repoName  = "xplat-fke"
 		shootName = machineDeployment.Namespace
 		strategy  string
 	)
-	EnableGPU, err := c.checkGPUWorkerGroup(machineDeployment)
+	EnableGPU, err := c.checkGPUWorkerGroup(ctx, machineDeployment)
 	if err != nil {
 		return err
 	}
 	if !EnableGPU {
-		klog.V(3).Infof("Shoot cluster %s is disable GPU - skipping install helm chart to shoot\n", shootName)
+		klog.Infof("Shoot cluster %s is disable GPU - skipping install helm chart to shoot\n", shootName)
 		return nil
 	}
 	kubeconfigFile := os.Getenv("HOME") + "/kubeconfig/" + shootName
@@ -101,7 +103,7 @@ func (c *controller) InstallChartForShoot(machineDeployment *v1alpha1.MachineDep
 	if err != nil && !os.IsExist(err) {
 		return fmt.Errorf("Could not create dir to store chart repository: [%v]", err)
 	}
-	kubeconfigSecret, err := c.controlCoreClient.CoreV1().Secrets(c.namespace).List(context.TODO(), metav1.ListOptions{})
+	kubeconfigSecret, err := c.controlCoreClient.CoreV1().Secrets(c.namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -112,6 +114,16 @@ func (c *controller) InstallChartForShoot(machineDeployment *v1alpha1.MachineDep
 				return fmt.Errorf("Could not create file to save kubeconfig of cluster %s: [%v]", shootName, err)
 			}
 		}
+	}
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigFile)
+	if err != nil {
+		return err
+	}
+
+	// Create the Kubernetes clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return err
 	}
 
 	settings := CreateSetting("", kubeconfigFile)
@@ -127,9 +139,9 @@ func (c *controller) InstallChartForShoot(machineDeployment *v1alpha1.MachineDep
 		klog.Infof("Shoot cluster %s have already installed charts GPU - skipping install helm chart to shoot\n", shootName)
 		return nil
 	}
-	klog.V(3).Infof("Shoot cluster %s is enabled GPU - starting install helm chart to shoot\n", shootName)
+	klog.Infof("Shoot cluster %s is enabled GPU - starting install helm chart to shoot\n", shootName)
 
-	label := c.getLabelWorkerGroup(machineDeployment)
+	label := machineDeployment.Spec.Template.Spec.NodeTemplateSpec.Labels
 	if label == nil {
 		strategy = "mig.strategy=none"
 	} else {
@@ -147,6 +159,7 @@ func (c *controller) InstallChartForShoot(machineDeployment *v1alpha1.MachineDep
 	// Update charts from the helm repo
 	repoUpdate(settings)
 	if checkInstalled == GPUChartNotInstalled {
+		klog.Info("Install chart GPU and Prometheus")
 		// Install GPU Operator
 		err = c.InstallGPUOperatorChart(repoName, strategy, kubeconfigFile)
 		if err != nil {
@@ -158,23 +171,25 @@ func (c *controller) InstallChartForShoot(machineDeployment *v1alpha1.MachineDep
 			return fmt.Errorf("Unable to install chart kube-prometheus-stack to cluster %s: [%v]", shootName, err)
 		}
 		// Install prometheus-adapter
-		err = c.InstallPrometheusAdapterChart(repoName, kubeconfigFile)
+		err = c.InstallPrometheusAdapterChart(clientset, repoName, kubeconfigFile)
 		if err != nil {
 			return fmt.Errorf("Unable to install chart prometheus-adapter to cluster %s: [%v]", shootName, err)
 		}
 	}
 	if checkInstalled == InstallPrometheusStack {
+		klog.Info("Install chart Prometheus Adapter and Prometheus Stack")
 		err = c.InstallPrometheusStackChart(repoName, kubeconfigFile)
 		if err != nil {
 			return fmt.Errorf("Unable to install chart kube-prometheus-stack to cluster %s: [%v]", shootName, err)
 		}
-		err = c.InstallPrometheusAdapterChart(repoName, kubeconfigFile)
+		err = c.InstallPrometheusAdapterChart(clientset, repoName, kubeconfigFile)
 		if err != nil {
 			return fmt.Errorf("Unable to install chart prometheus-adapter to cluster %s: [%v]", shootName, err)
 		}
 	}
 	if checkInstalled == InstallPrometheusAdapter {
-		err = c.InstallPrometheusAdapterChart(repoName, kubeconfigFile)
+		klog.Info("Install chart Prometheus Adapter")
+		err = c.InstallPrometheusAdapterChart(clientset, repoName, kubeconfigFile)
 		if err != nil {
 			return fmt.Errorf("Unable to install chart prometheus-adapter to cluster %s: [%v]", shootName, err)
 		}
@@ -182,7 +197,7 @@ func (c *controller) InstallChartForShoot(machineDeployment *v1alpha1.MachineDep
 	return nil
 }
 func (c *controller) InstallGPUOperatorChart(repoName, value, kubeconfigFile string) error {
-	klog.V(4).Infof("Strategy of GPU operator: %s", value)
+	klog.Infof("Strategy of GPU operator: %s", value)
 	settings := CreateSetting("gpu-operator", kubeconfigFile)
 	err := c.installChart(repoName, "gpu-operator", value, settings)
 	time.Sleep(30 * time.Second)
@@ -194,16 +209,20 @@ func (c *controller) InstallPrometheusStackChart(repoName, kubeconfigFile string
 	time.Sleep(45 * time.Second)
 	return err
 }
-func (c *controller) InstallPrometheusAdapterChart(repoName, kubeconfigFile string) error {
+func (c *controller) InstallPrometheusAdapterChart(shootClient *kubernetes.Clientset, repoName, kubeconfigFile string) error {
 	settings := CreateSetting("prometheus", kubeconfigFile)
-	service, err := c.controlCoreClient.CoreV1().Services("prometheus").List(context.TODO(), metav1.ListOptions{
+
+	service, err := shootClient.CoreV1().Services("prometheus").List(context.TODO(), metav1.ListOptions{
 		LabelSelector: "app=kube-prometheus-stack-prometheus",
 	})
+	klog.Info("Get svc!")
 	if err != nil {
+		klog.Infof("Unable to get svc with selector in cluster %s: [%v]", c.namespace, err)
 		return fmt.Errorf("Unable to get svc with selector in cluster %s: [%v]", c.namespace, err)
 	}
 	prometheus_service := service.Items[0].Name
 	value := "prometheus.url=http://" + prometheus_service + ".prometheus.svc.cluster.local"
+	klog.Info("url: %s", value)
 	err = c.installChart(repoName, "prometheus-adapter", value, settings)
 	time.Sleep(15 * time.Second)
 	return err
@@ -439,7 +458,7 @@ func debug(format string, v ...interface{}) {
 
 func (c *controller) CheckChartInstalled(settings *cli.EnvSettings) (int, error) {
 	actionConfig := new(action.Configuration)
-	if err := actionConfig.Init(settings.RESTClientGetter(), "", os.Getenv("HELM_DRIVER"), actionConfig.Log); err != nil {
+	if err := actionConfig.Init(settings.RESTClientGetter(), "", os.Getenv("HELM_DRIVER"), debug); err != nil {
 		return -1, fmt.Errorf("Unable to init action config to list releases in shoot cluster %s: [%v]", c.namespace, err)
 	}
 	client := action.NewList(actionConfig)
@@ -511,12 +530,12 @@ func DecodeProviderSpecFromMachineClass(machineClass *v1alpha1.MachineClass) (*P
 	return providerSpec, nil
 }
 
-func (c *controller) getLabelWorkerGroup(machineDeployment *v1alpha1.MachineDeployment) map[string]string {
-	// machineDeployment := c.getMachineDeploymentForMachine(ctx, machine)
-	label := make(map[string]string)
-	label = machineDeployment.Spec.Template.Spec.NodeTemplateSpec.Labels
-	return label
-}
+// func (c *controller) getLabelWorkerGroup(machineDeployment *v1alpha1.MachineDeployment) map[string]string {
+// 	// machineDeployment := c.getMachineDeploymentForMachine(ctx, machine)
+// 	label := make(map[string]string)
+// 	label = machineDeployment.Spec.Template.Spec.NodeTemplateSpec.Labels
+// 	return label
+// }
 
 // getDeploymentForMachine returns the deployment managing the given Machine.
 // func (c *controller) getMachineDeploymentForMachine(ctx context.Context, machine *v1alpha1.Machine) *v1alpha1.MachineDeployment {
