@@ -546,13 +546,13 @@ func (dc *controller) reconcileClusterMachineDeployment(key string) error {
 	if scalingEvent {
 		return dc.sync(ctx, d, machineSets, machineMap)
 	}
-	// if d.Status.ReadyReplicas == d.Status.Replicas {
-	// 	klog.V(3).Infof("Worker Group %s have succesfully reconciled", deployment.Name)
-	// 	err = dc.InstallChartForShoot(ctx, deployment)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
+	if d.Status.ReadyReplicas == d.Status.Replicas {
+		klog.V(3).Infof("Worker Group %s have succesfully reconciled", deployment.Name)
+		err = dc.InstallChartForShoot(deployment)
+		if err != nil {
+			return err
+		}
+	}
 	switch d.Spec.Strategy.Type {
 	case v1alpha1.RecreateMachineDeploymentStrategyType:
 		return dc.rolloutRecreate(ctx, d, machineSets, machineMap)

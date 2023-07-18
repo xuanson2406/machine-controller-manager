@@ -64,7 +64,6 @@ type ProviderSpec struct {
 }
 
 func (c *controller) checkGPUWorkerGroup(machinedeployment *v1alpha1.MachineDeployment) (bool, error) {
-
 	machineClassInterface := c.controlMachineClient.MachineClasses(machinedeployment.Namespace)
 	machineClass, err := machineClassInterface.Get(context.TODO(), machinedeployment.Spec.Template.Spec.Class.Name, metav1.GetOptions{})
 	if err != nil {
