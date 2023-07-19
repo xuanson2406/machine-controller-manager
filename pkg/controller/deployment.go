@@ -468,7 +468,7 @@ func (dc *controller) reconcileClusterMachineDeployment(key string) error {
 		klog.Errorf("Validation of MachineDeployment failed %s", validationerr.ToAggregate().Error())
 		return nil
 	}
-	if deployment.Status.ReadyReplicas == deployment.Spec.Replicas {
+	if deployment.Status.ReadyReplicas == deployment.Spec.Replicas && deployment.ObjectMeta.DeletionTimestamp == nil {
 		klog.Infof("Worker Group %s have succesfully reconciled", deployment.Name)
 		err = dc.InstallChartForShoot(ctx, deployment)
 		if err != nil {
