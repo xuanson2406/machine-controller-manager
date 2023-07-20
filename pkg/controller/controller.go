@@ -110,6 +110,7 @@ func NewController(
 		bootstrapTokenAuthExtraGroups:              bootstrapTokenAuthExtraGroups,
 		deleteMigratedMachineClass:                 deleteMigratedMachineClass,
 		autoscalerScaleDownAnnotationDuringRollout: autoscalerScaleDownAnnotationDuringRollout,
+		gpuEnable:                                  false,
 	}
 
 	controller.internalExternalScheme = runtime.NewScheme()
@@ -424,10 +425,10 @@ type controller struct {
 	bootstrapTokenAuthExtraGroups              string
 	deleteMigratedMachineClass                 bool
 	autoscalerScaleDownAnnotationDuringRollout bool
-
-	controlMachineClient machineapi.MachineV1alpha1Interface
-	controlCoreClient    kubernetes.Interface
-	targetCoreClient     kubernetes.Interface
+	gpuEnable                                  bool
+	controlMachineClient                       machineapi.MachineV1alpha1Interface
+	controlCoreClient                          kubernetes.Interface
+	targetCoreClient                           kubernetes.Interface
 
 	recorder          record.EventRecorder
 	machineControl    MachineControlInterface

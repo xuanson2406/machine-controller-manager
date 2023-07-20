@@ -95,9 +95,14 @@ func (c *controller) InstallChartForShoot(ctx context.Context, machineDeployment
 		return err
 	}
 	if !EnableGPU {
-		klog.Infof("Shoot cluster %s is disable GPU - skipping install helm chart to shoot\n", shootName)
+		klog.Infof("Worker group %s is disable GPU - skipping install helm chart to shoot\n", machineDeployment.Name)
 		return nil
 	}
+	if c.gpuEnable {
+		klog.Infof("GPU is installing in shoot cluster %s - skipping!", shootName)
+		return nil
+	}
+	c.gpuEnable = true
 	kubeconfigFile := os.Getenv("HOME") + "/kubeconfig/" + shootName
 	err = os.MkdirAll(filepath.Dir(kubeconfigFile), os.ModePerm)
 	if err != nil && !os.IsExist(err) {
@@ -194,19 +199,20 @@ func (c *controller) InstallChartForShoot(ctx context.Context, machineDeployment
 			return fmt.Errorf("Unable to install chart prometheus-adapter to cluster %s: [%v]", shootName, err)
 		}
 	}
+	c.gpuEnable = false
 	return nil
 }
 func (c *controller) InstallGPUOperatorChart(repoName, value, kubeconfigFile string) error {
 	klog.Infof("Strategy of GPU operator: %s", value)
 	settings := CreateSetting("gpu-operator", kubeconfigFile)
 	err := c.installChart(repoName, "gpu-operator", value, settings)
-	time.Sleep(30 * time.Second)
+	time.Sleep(15 * time.Second)
 	return err
 }
 func (c *controller) InstallPrometheusStackChart(repoName, kubeconfigFile string) error {
 	settings := CreateSetting("prometheus", kubeconfigFile)
 	err := c.installChart(repoName, "kube-prometheus-stack", "", settings)
-	time.Sleep(45 * time.Second)
+	time.Sleep(30 * time.Second)
 	return err
 }
 func (c *controller) InstallPrometheusAdapterChart(shootClient *kubernetes.Clientset, repoName, kubeconfigFile string) error {
@@ -215,16 +221,17 @@ func (c *controller) InstallPrometheusAdapterChart(shootClient *kubernetes.Clien
 	service, err := shootClient.CoreV1().Services("prometheus").List(context.TODO(), metav1.ListOptions{
 		LabelSelector: "app=kube-prometheus-stack-prometheus",
 	})
-	klog.Info("Get svc!")
 	if err != nil {
 		klog.Infof("Unable to get svc with selector in cluster %s: [%v]", c.namespace, err)
 		return fmt.Errorf("Unable to get svc with selector in cluster %s: [%v]", c.namespace, err)
 	}
+	if service == nil {
+		klog.Infof("svc with selector NOT FOUND in cluster %s", c.namespace)
+		return nil
+	}
 	prometheus_service := service.Items[0].Name
 	value := "prometheus.url=http://" + prometheus_service + ".prometheus.svc.cluster.local"
-	klog.Info("url: %s", value)
 	err = c.installChart(repoName, "prometheus-adapter", value, settings)
-	time.Sleep(15 * time.Second)
 	return err
 }
 
