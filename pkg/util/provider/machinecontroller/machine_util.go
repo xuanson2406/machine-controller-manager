@@ -833,7 +833,6 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 					c.enqueueMachineAfter(machine, sleepTime)
 				}
 				time.Sleep(3 * time.Minute)
-				// c.rebooted = true
 				c.enqueueMachineAfter(machine, sleepTime)
 			}
 			// If timeout has not occurred, re-enqueue the machine
@@ -860,17 +859,17 @@ func (c *controller) reconcileMachineHealth(machine *v1alpha1.Machine) (machineu
 }
 func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 	credential := make(map[string]string)
-	// 	script := `#!/bin/bash
-	// reboot`
 	machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
 	if err != nil {
 		klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machine.Spec.Class.Name, err)
 		return err
 	}
+
 	secrets, err := c.getSecret(machineClass.SecretRef, machineClass.Name)
 	if err != nil {
 		return err
 	}
+
 	credential["userName"] = string(secrets.Data["fptcloudUser"])
 	credential["password"] = string(secrets.Data["fptcloudPassword"])
 	credential["orgName"] = string(secrets.Data["fptcloudOrg"])
@@ -882,7 +881,6 @@ func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 	}
 	vdc, _ := GetVdcByName(client, credential["orgName"], credential["vdcName"])
 	vapp := vdc.GetVappList()
-	// vm := &govcd.VM{}
 	for _, i := range vapp {
 		if strings.Contains(i.Name, machine.Name) {
 			VAPP, _ := vdc.GetVAppByName(i.Name, false)
@@ -933,49 +931,6 @@ func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 			break
 		}
 	}
-	// unDeployTask, err := vm.Undeploy()
-	// if err != nil {
-	// 	if strings.Contains(err.Error(), "API Error") {
-	// 		time.Sleep(3 * time.Second)
-	// 	} else {
-	// 		return fmt.Errorf("unable to power off vm %s: [%v]", machine.Name, err)
-	// 	}
-	// }
-	// if unDeployTask.Task != nil {
-	// 	err = unDeployTask.WaitTaskCompletion()
-	// 	if err != nil {
-	// 		return fmt.Errorf("unable to wait for power of vm %s completion: [%v]", machine.Name, err)
-	// 	}
-	// 	time.Sleep(2 * time.Second)
-	// }
-
-	// klog.V(4).Infof("VM %s is power off", machine.Name)
-	// taskCustomizeVM, err := vm.Customize(vm.VM.GuestCustomizationSection.ComputerName, script, false)
-	// if err != nil {
-	// 	if strings.Contains(err.Error(), "API Error") {
-	// 		time.Sleep(3 * time.Second)
-
-	// 	} else {
-	// 		return fmt.Errorf("unable to customize VM %s with script: [%v]", machine.Name, err)
-	// 	}
-	// }
-	// err = taskCustomizeVM.WaitTaskCompletion()
-	// if err != nil {
-	// 	return fmt.Errorf("unable to wait for task customize VM %s with script: [%v]", machine.Name, err)
-	// }
-	// for {
-	// 	err = vm.PowerOnAndForceCustomization()
-	// 	if err != nil {
-	// 		if strings.Contains(err.Error(), "API Error") {
-	// 			time.Sleep(3 * time.Second)
-	// 			continue
-	// 		} else {
-	// 			return fmt.Errorf("unable to power on vm %s with recustomizing option: [%v]", machine.Name, err)
-	// 		}
-	// 	}
-	// 	klog.V(4).Infof("VM %s is power on", machine.Name)
-	// 	break
-	// }
 
 	return nil
 }
@@ -994,6 +949,7 @@ func GetClientForController(credential map[string]string) (*govcd.VCDClient, err
 	if err != nil {
 		klog.V(4).Infof(err.Error())
 	}
+
 	return client, err
 }
 func Login(User string, Password string, Org string, HREF string) (*govcd.VCDClient, error) {
