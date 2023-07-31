@@ -660,7 +660,6 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 				// When machine creation went through
 				description = fmt.Sprintf("Machine %s successfully joined the cluster", clone.Name)
 				lastOperationType = v1alpha1.MachineOperationCreate
-				// if
 				// Delete the bootstrap token
 				err = c.deleteBootstrapToken(ctx, clone.Name)
 				if err != nil {
@@ -758,7 +757,6 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 					c.enqueueMachineAfter(machine, sleepTime)
 				}
 				time.Sleep(3 * time.Minute)
-				// c.rebooted = true
 				c.enqueueMachineAfter(machine, sleepTime)
 			}
 			// If timeout has not occurred, re-enqueue the machine
@@ -785,33 +783,36 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 }
 func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 	credential := make(map[string]string)
-	// 	script := `#!/bin/bash
-	// reboot`
+
 	machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
 	if err != nil {
 		klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machine.Spec.Class.Name, err)
 		return err
 	}
+
 	secrets, err := c.getSecret(machineClass.SecretRef, machineClass.Name)
 	if err != nil {
 		return err
 	}
+
 	credential["userName"] = string(secrets.Data["fptcloudUser"])
 	credential["password"] = string(secrets.Data["fptcloudPassword"])
 	credential["orgName"] = string(secrets.Data["fptcloudOrg"])
 	credential["vcdHref"] = string(secrets.Data["fptcloudHref"])
 	credential["vdcName"] = string(secrets.Data["fptcloudVDC"])
+
 	client, err := GetClientForController(credential)
 	if err != nil {
 		return err
 	}
+
 	vdc, _ := GetVdcByName(client, credential["orgName"], credential["vdcName"])
 	vapp := vdc.GetVappList()
 	for _, i := range vapp {
 		if strings.Contains(i.Name, machine.Name) {
 			VAPP, _ := vdc.GetVAppByName(i.Name, false)
 			vm, _ := VAPP.GetVMById(VAPP.VApp.Children.VM[0].ID, false)
-			if vm.VM.Status != 4 {
+			if vm.VM.Status != 4 { // if VM is not Power On
 				task, err := vm.PowerOff()
 				if err != nil {
 					if strings.Contains(err.Error(), "API Error") {
@@ -842,6 +843,7 @@ func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 				}
 				break
 			}
+
 			klog.V(4).Infof("VM %s is power on - try to reboot VM - wait to Machine ready", machine.Name)
 			task, err := VAPP.Reboot()
 			if err != nil {
@@ -851,13 +853,16 @@ func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 					return fmt.Errorf("unable to reboot vm [%v]", err)
 				}
 			}
+
 			err = task.WaitTaskCompletion()
 			if err != nil {
 				return fmt.Errorf("unable to wait for reboot vm completion: [%v]", err)
 			}
+
 			break
 		}
 	}
+
 	return nil
 }
 func GetClientForController(credential map[string]string) (*govcd.VCDClient, error) {
