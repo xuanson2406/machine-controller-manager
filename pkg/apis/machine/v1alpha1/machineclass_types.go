@@ -19,6 +19,10 @@
 package v1alpha1
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -83,4 +87,23 @@ type NodeTemplate struct {
 
 	// Zone of the expected node belonging to nodeGroup
 	Zone string `json:"zone"`
+}
+
+func DecodeProviderSpecFromMachineClass(machineClass *MachineClass) (*ProviderSpec, error) {
+	// Extract providerSpec
+	var providerSpec *ProviderSpec
+
+	if machineClass == nil {
+		return nil, errors.New("MachineClass provided is nil")
+	}
+
+	jsonErr := json.Unmarshal(machineClass.ProviderSpec.Raw, &providerSpec)
+	if jsonErr != nil {
+		return nil, fmt.Errorf("failed to parse JSON data provided as ProviderSpec: %v", jsonErr)
+	}
+	return providerSpec, nil
+}
+
+type ProviderSpec struct {
+	VGPU string `json:"vGPU,omitempty"`
 }
