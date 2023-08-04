@@ -34,8 +34,8 @@ require (
 	k8s.io/cluster-bootstrap v0.22.9
 	k8s.io/code-generator v0.22.9
 	k8s.io/component-base v0.22.9
-	k8s.io/klog/v2 v2.30.0
-	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // keep this value in sync with k8s.io/apiserver
+	k8s.io/klog/v2 v2.9.0
+	k8s.io/kube-openapi v0.0.0-20211110012726-3cc51fd1e909 // keep this value in sync with k8s.io/apiserver
 	k8s.io/utils v0.0.0-20211116205334-6203023598ed
 )
 
@@ -61,7 +61,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
-	github.com/go-logr/logr v1.2.0 // indirect
+	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
@@ -118,12 +118,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/gengo v0.0.0-20210813121822-485abfe95c7c // indirect
-	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
-replace (
-	github.com/rubenv/sql-migrate => github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc
-	k8s.io/apimachinery => k8s.io/apimachinery v0.23.1
-)
+replace github.com/rubenv/sql-migrate => github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc
