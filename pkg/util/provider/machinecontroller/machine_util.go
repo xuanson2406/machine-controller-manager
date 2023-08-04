@@ -736,7 +736,7 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 						}
 						klog.V(4).Infof("Status of pod %s: %s", Pod.Name, Pod.Status.Phase)
 						if Pod.Status.Phase == v1.PodRunning {
-							podLog := clientset.CoreV1().Pods("gpu-operator").GetLogs(Pod.Name,
+							podLog := clientset.CoreV1().Pods("fptcloud-gpu-operator").GetLogs(Pod.Name,
 								&v1.PodLogOptions{Container: "nvidia-operator-validator"})
 							log, err := podLog.Stream(ctx)
 							if err != nil {
