@@ -876,7 +876,7 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 				}
 				cloneDirty = true
 			} else {
-				if node.Annotations[nodeAutoRepairAnnotation] == "true" {
+				if node.Annotations[nodeAutoRepairAnnotation] != "false" {
 
 					// Timeout occurred due to machine being unhealthy for too long
 					description = fmt.Sprintf(
@@ -895,7 +895,7 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 				}
 			}
 		} else {
-			if node.Annotations[nodeAutoRepairAnnotation] == "true" {
+			if node.Annotations[nodeAutoRepairAnnotation] != "false" {
 				timeOutReboot := 3 * time.Minute
 				Reboot := metav1.Now().Add(-timeOutReboot).Sub(machine.Status.CurrentStatus.LastUpdateTime.Time)
 				if machine.Status.CurrentStatus.Phase == v1alpha1.MachineUnknown && Reboot > 0 {
