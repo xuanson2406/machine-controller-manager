@@ -65,10 +65,11 @@ import (
 var emptyMap = make(map[string]string)
 
 const (
-	maxReplacements    = 1
-	pollInterval       = 100 * time.Millisecond
-	lockAcquireTimeout = 1 * time.Second
-	cacheUpdateTimeout = 1 * time.Second
+	maxReplacements          = 1
+	pollInterval             = 100 * time.Millisecond
+	lockAcquireTimeout       = 1 * time.Second
+	cacheUpdateTimeout       = 1 * time.Second
+	nodeAutoRepairAnnotation = "worker.fptcloud/node-auto-repair"
 )
 
 // TODO: use client library instead when it starts to support update retries
@@ -875,36 +876,39 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 				}
 				cloneDirty = true
 			} else {
-				// Timeout occurred due to machine being unhealthy for too long
-				description = fmt.Sprintf(
-					"Machine %s is not healthy since %s minutes. Changing status to failed. Node Conditions: %+v",
-					machine.Name,
-					timeOutDuration,
-					machine.Status.Conditions,
-				)
-				klog.Error(description)
-				machineDeployName := getMachineDeploymentName(machine)
-				// creating lock for machineDeployment, if not allocated
-				c.permitGiver.RegisterPermits(machineDeployName, 1)
-				return c.tryMarkingMachineFailed(ctx, machine, clone, machineDeployName, description, lockAcquireTimeout)
+				if node.Annotations[nodeAutoRepairAnnotation] != "false" {
+					// Timeout occurred due to machine being unhealthy for too long
+					description = fmt.Sprintf(
+						"Machine %s is not healthy since %s minutes. Changing status to failed. Node Conditions: %+v",
+						machine.Name,
+						timeOutDuration,
+						machine.Status.Conditions,
+					)
+					klog.Error(description)
+					machineDeployName := getMachineDeploymentName(machine)
+					// creating lock for machineDeployment, if not allocated
+					c.permitGiver.RegisterPermits(machineDeployName, 1)
+					return c.tryMarkingMachineFailed(ctx, machine, clone, machineDeployName, description, lockAcquireTimeout)
+				}
 			}
 		} else {
-			timeOutReboot := 3 * time.Minute
-			Reboot := metav1.Now().Add(-timeOutReboot).Sub(machine.Status.CurrentStatus.LastUpdateTime.Time)
-			if machine.Status.CurrentStatus.Phase == v1alpha1.MachineUnknown && Reboot > 0 {
-				klog.V(4).Infof("Machine %s is not healthy --> rebooting machine!", machine.Name)
-				err := c.RebootVM(clone)
-				if err != nil {
-					klog.V(4).Infof("Machine %s rebooted failed - will retry: [%v]", machine.Name, err.Error())
+			if node.Annotations[nodeAutoRepairAnnotation] != "false" {
+				timeOutReboot := 3 * time.Minute
+				Reboot := metav1.Now().Add(-timeOutReboot).Sub(machine.Status.CurrentStatus.LastUpdateTime.Time)
+				if machine.Status.CurrentStatus.Phase == v1alpha1.MachineUnknown && Reboot > 0 {
+					klog.V(4).Infof("Machine %s is not healthy --> rebooting machine!", machine.Name)
+					err := c.RebootVM(clone)
+					if err != nil {
+						klog.V(4).Infof("Machine %s rebooted failed - will retry: [%v]", machine.Name, err.Error())
+						c.enqueueMachineAfter(machine, sleepTime)
+					}
+					time.Sleep(3 * time.Minute)
 					c.enqueueMachineAfter(machine, sleepTime)
 				}
-				time.Sleep(3 * time.Minute)
-				// c.rebooted = true
+				// If timeout has not occurred, re-enqueue the machine
+				// after a specified sleep time
 				c.enqueueMachineAfter(machine, sleepTime)
 			}
-			// If timeout has not occurred, re-enqueue the machine
-			// after a specified sleep time
-			c.enqueueMachineAfter(machine, sleepTime)
 		}
 	}
 
