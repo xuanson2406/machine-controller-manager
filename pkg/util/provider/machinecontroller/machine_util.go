@@ -599,6 +599,12 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 	)
 
 	node, err := c.nodeLister.Get(machine.Status.Node)
+	if node != nil {
+		if node.Annotations[nodeAutoRepairAnnotation] == "false" {
+			enableNodeAutoRepair = false
+			klog.Infof("machine %s is disable node-auto-repair !", node.Name)
+		}
+	}
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			// Node object is not found
@@ -632,9 +638,9 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 			return machineutils.ShortRetry, err
 		}
 	} else {
-		if node.Annotations[nodeAutoRepairAnnotation] == "false" {
-			enableNodeAutoRepair = false
-		}
+		// if node.Annotations[nodeAutoRepairAnnotation] == "false" {
+		// 	enableNodeAutoRepair = false
+		// }
 		if nodeConditionsHaveChanged(machine.Status.Conditions, node.Status.Conditions) {
 			clone.Status.Conditions = node.Status.Conditions
 			klog.V(3).Infof("Conditions of Machine %q with providerID %q and backing node %q are changing", machine.Name, getProviderID(machine), getNodeName(machine))
