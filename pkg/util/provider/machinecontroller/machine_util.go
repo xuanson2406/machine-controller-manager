@@ -591,10 +591,11 @@ func (c *controller) getCreateFailurePhase(machine *v1alpha1.Machine) v1alpha1.M
 // any change in node conditions or health
 func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alpha1.Machine) (machineutils.RetryPeriod, error) {
 	var (
-		cloneDirty        = false
-		clone             = machine.DeepCopy()
-		description       string
-		lastOperationType v1alpha1.MachineOperationType
+		cloneDirty           = false
+		clone                = machine.DeepCopy()
+		description          string
+		lastOperationType    v1alpha1.MachineOperationType
+		enableNodeAutoRepair = true
 	)
 
 	node, err := c.nodeLister.Get(machine.Status.Node)
@@ -631,6 +632,9 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 			return machineutils.ShortRetry, err
 		}
 	} else {
+		if node.Annotations[nodeAutoRepairAnnotation] == "false" {
+			enableNodeAutoRepair = false
+		}
 		if nodeConditionsHaveChanged(machine.Status.Conditions, node.Status.Conditions) {
 			clone.Status.Conditions = node.Status.Conditions
 			klog.V(3).Infof("Conditions of Machine %q with providerID %q and backing node %q are changing", machine.Name, getProviderID(machine), getNodeName(machine))
@@ -876,7 +880,7 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 				}
 				cloneDirty = true
 			} else {
-				if node.Annotations[nodeAutoRepairAnnotation] != "false" {
+				if enableNodeAutoRepair {
 					// Timeout occurred due to machine being unhealthy for too long
 					description = fmt.Sprintf(
 						"Machine %s is not healthy since %s minutes. Changing status to failed. Node Conditions: %+v",
@@ -889,10 +893,13 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 					// creating lock for machineDeployment, if not allocated
 					c.permitGiver.RegisterPermits(machineDeployName, 1)
 					return c.tryMarkingMachineFailed(ctx, machine, clone, machineDeployName, description, lockAcquireTimeout)
+				} else {
+					klog.V(4).Infof("Warning: Machine %s is not healthy exceed %s minutes - disable node-auto-repair !", machine.Name, timeOutDuration)
+					return machineutils.LongRetry, nil
 				}
 			}
 		} else {
-			if node.Annotations[nodeAutoRepairAnnotation] != "false" {
+			if enableNodeAutoRepair {
 				timeOutReboot := 3 * time.Minute
 				Reboot := metav1.Now().Add(-timeOutReboot).Sub(machine.Status.CurrentStatus.LastUpdateTime.Time)
 				if machine.Status.CurrentStatus.Phase == v1alpha1.MachineUnknown && Reboot > 0 {
@@ -905,10 +912,10 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 					time.Sleep(3 * time.Minute)
 					c.enqueueMachineAfter(machine, sleepTime)
 				}
-				// If timeout has not occurred, re-enqueue the machine
-				// after a specified sleep time
-				c.enqueueMachineAfter(machine, sleepTime)
 			}
+			// If timeout has not occurred, re-enqueue the machine
+			// after a specified sleep time
+			c.enqueueMachineAfter(machine, sleepTime)
 		}
 	}
 
