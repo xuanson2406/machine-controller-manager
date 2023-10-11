@@ -69,7 +69,7 @@ const (
 	pollInterval             = 100 * time.Millisecond
 	lockAcquireTimeout       = 1 * time.Second
 	cacheUpdateTimeout       = 1 * time.Second
-	nodeAutoRepairAnnotation = "worker.fptcloud/node-auto-repair"
+	nodeAutoRepairAnnotation = "worker.fptcloud.com/node-auto-repair"
 )
 
 // TODO: use client library instead when it starts to support update retries
@@ -638,9 +638,6 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 			return machineutils.ShortRetry, err
 		}
 	} else {
-		// if node.Annotations[nodeAutoRepairAnnotation] == "false" {
-		// 	enableNodeAutoRepair = false
-		// }
 		if nodeConditionsHaveChanged(machine.Status.Conditions, node.Status.Conditions) {
 			clone.Status.Conditions = node.Status.Conditions
 			klog.V(3).Infof("Conditions of Machine %q with providerID %q and backing node %q are changing", machine.Name, getProviderID(machine), getNodeName(machine))
