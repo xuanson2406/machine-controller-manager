@@ -766,15 +766,18 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 										updatedTaints = append(updatedTaints, taint)
 									}
 								}
+								node, err := clientset.CoreV1().Nodes().Get(ctx, clone.Name, metav1.GetOptions{})
+								if err != nil {
+									klog.Warning(err)
+								}
 								node.Spec.Taints = updatedTaints
 								_, err = c.targetCoreClient.CoreV1().Nodes().Update(ctx, node, metav1.UpdateOptions{})
 								if err != nil {
 									klog.Warning(err)
+								} else {
+									klog.V(4).Infof("node %s deleted taint nvidia.com/gpu", clone.Name)
+									break
 								}
-								klog.V(4).Infof("node %s deleted taint nvidia.com/gpu", clone.Name)
-								// volume := clientset.StorageV1().VolumeAttachments().List()
-								break
-
 							}
 						}
 						time.Sleep(1 * time.Minute)
@@ -786,18 +789,18 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 							"Machine %s failed to install gpu validator", clone.Name)
 						klog.Error(description)
 
-						var updatedTaints []corev1.Taint
-						for _, taint := range node.Spec.Taints {
-							if taint.Key != "nvidia.com/gpu" {
-								updatedTaints = append(updatedTaints, taint)
-							}
-						}
-						node.Spec.Taints = updatedTaints
-						_, err = c.targetCoreClient.CoreV1().Nodes().Update(ctx, node, metav1.UpdateOptions{})
-						if err != nil {
-							klog.Warning(err)
-						}
-						klog.V(4).Infof("node %s deleted taint nvidia.com/gpu", clone.Name)
+						// var updatedTaints []corev1.Taint
+						// for _, taint := range node.Spec.Taints {
+						// 	if taint.Key != "nvidia.com/gpu" {
+						// 		updatedTaints = append(updatedTaints, taint)
+						// 	}
+						// }
+						// node.Spec.Taints = updatedTaints
+						// _, err = c.targetCoreClient.CoreV1().Nodes().Update(ctx, node, metav1.UpdateOptions{})
+						// if err != nil {
+						// 	klog.Warning(err)
+						// }
+						// klog.V(4).Infof("node %s deleted taint nvidia.com/gpu", clone.Name)
 
 						clone.Status.LastOperation = v1alpha1.LastOperation{
 							Description:    description,
