@@ -887,6 +887,7 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 					LastUpdateTime: metav1.Now(),
 				}
 				cloneDirty = true
+				klog.V(4).Infof("machine is %s, change machine status to FAILED", machine.Status.CurrentStatus.Phase)
 			} else {
 				if enableNodeAutoRepair {
 					// Timeout occurred due to machine being unhealthy for too long
