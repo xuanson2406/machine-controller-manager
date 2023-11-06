@@ -602,7 +602,9 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 	if node != nil {
 		if node.Annotations[nodeAutoRepairAnnotation] == "false" {
 			enableNodeAutoRepair = false
-			klog.Infof("machine %s is disable node-auto-repair !", node.Name)
+			klog.V(4).Infof("machine %s is disable node-auto-repair !", node.Name)
+		} else {
+			klog.V(4).Infof("machine %s is enable node-auto-repair !", node.Name)
 		}
 	}
 	if err != nil {
@@ -610,7 +612,7 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 			// Node object is not found
 			if len(machine.Status.Conditions) > 0 &&
 				machine.Status.CurrentStatus.Phase == v1alpha1.MachineRunning {
-				// If machine has conditions on it,
+				// If machine has conditions on  it,
 				// and corresponding node object went missing
 				// and if machine object still reports healthy
 				description = fmt.Sprintf(
@@ -857,7 +859,7 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 		} else {
 			timeOutDuration = c.getEffectiveHealthTimeout(machine).Duration
 		}
-
+		klog.V(4).Infof("machine is %s, timeout of machine is: %v", machine.Status.CurrentStatus.Phase, timeOutDuration)
 		// Timeout value obtained by subtracting last operation with expected time out period
 		timeOut := metav1.Now().Add(-timeOutDuration).Sub(machine.Status.CurrentStatus.LastUpdateTime.Time)
 		if timeOut > 0 {

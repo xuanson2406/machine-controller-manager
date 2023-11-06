@@ -111,6 +111,7 @@ type MachineStatus struct {
 	// It can be used by future operation calls to determine current infrastucture state
 	// +optional
 	LastKnownState string `json:"lastKnownState,omitempty"`
+	// 
 }
 
 // LastOperation suggests the last operation performed on the object
