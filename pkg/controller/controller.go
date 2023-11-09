@@ -332,7 +332,7 @@ func NewController(
 		DeleteFunc: controller.packetMachineClassDelete,
 	})
 
-	/* Node Controller Informers - Don't remove this, saved for future use case.
+	//  Node Controller Informers - Don't remove this, saved for future use case.
 	nodeInformer.Informer().AddEventHandler(
 		cache.FilteringResourceEventHandler{
 			FilterFunc: func(obj interface{}) bool {
@@ -345,7 +345,6 @@ func NewController(
 				DeleteFunc: controller.nodeDelete,
 			},
 		})
-	*/
 
 	// Machine Controller Informers
 	nodeInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
