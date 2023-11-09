@@ -75,7 +75,7 @@ func (c *controller) reconcileClusterNodeKey(key string) error {
 	} else {
 		// Re-enqueue periodically to avoid missing of events
 		// TODO: Get ride of this logic
-		c.enqueueNodeAfter(node, 3*time.Minute)
+		c.enqueueNodeAfter(node, 10*time.Minute)
 	}
 	return nil
 }
@@ -124,7 +124,7 @@ func (c *controller) reconcileClusterNode(ctx context.Context, node *v1.Node) er
 					klog.Warning(err)
 				}
 				logOutput := buf.String()
-				klog.V(4).Infof("Log of Pod %s: %s", p.Name, logOutput)
+				// klog.V(4).Infof("Log of Pod %s: %s", p.Name, logOutput)
 				if strings.Contains(logOutput, "error setting MIGConfig: error attempting multiple config orderings: all orderings failed") {
 					label := make(map[string]string)
 					for k, v := range node.Labels {
