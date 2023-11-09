@@ -28,7 +28,9 @@ import (
 	"k8s.io/klog/v2"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/tools/clientcmd"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
@@ -80,14 +82,36 @@ func (c *controller) reconcileClusterNodeKey(key string) error {
 
 func (c *controller) reconcileClusterNode(ctx context.Context, node *v1.Node) error {
 	if node.Labels["worker.fptcloud/type"] == "gpu" {
-		pods, err := c.targetCoreClient.CoreV1().Pods("fptcloud-gpu-operator").List(ctx, metav1.ListOptions{LabelSelector: "app=nvidia-mig-manager"})
+		list, err := c.controlCoreClient.CoreV1().Secrets(c.namespace).List(ctx, metav1.ListOptions{})
+		if err != nil {
+			klog.Warning(err)
+		}
+		var kubecfg v1.Secret
+		for _, secret := range list.Items {
+			if strings.Contains(secret.Name, "user-kubeconfig") {
+				kubecfg = secret
+				break
+			}
+		}
+		shootConfig := string(kubecfg.Data["kubeconfig"])
+		config, err := clientcmd.RESTConfigFromKubeConfig([]byte(shootConfig))
+		if err != nil {
+			panic(err.Error())
+		}
+
+		// Create a clientset using the Config object
+		clientset, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			panic(err.Error())
+		}
+		pods, err := clientset.CoreV1().Pods("fptcloud-gpu-operator").List(ctx, metav1.ListOptions{LabelSelector: "app=nvidia-mig-manager"})
 		if err != nil {
 			return err
 		}
 		for _, p := range pods.Items {
 			if p.Spec.NodeName == node.Name && p.Status.Phase == v1.PodRunning {
 				klog.V(4).Infof("pod [%s] in node [%s]", p.Name, node.Name)
-				podLog := c.targetCoreClient.CoreV1().Pods("fptcloud-gpu-operator").GetLogs(p.Name,
+				podLog := clientset.CoreV1().Pods("fptcloud-gpu-operator").GetLogs(p.Name,
 					&v1.PodLogOptions{Container: "nvidia-mig-manager"})
 				log, err := podLog.Stream(ctx)
 				if err != nil {
@@ -111,12 +135,12 @@ func (c *controller) reconcileClusterNode(ctx context.Context, node *v1.Node) er
 					// nodeP, _ := c.targetCoreClient.CoreV1().Nodes().Get(ctx, n.Name, metav1.GetOptions{})
 					klog.V(4).Infof("Updating label for node %s", node.Name)
 					node.Labels = label
-					_, err := c.targetCoreClient.CoreV1().Nodes().Update(ctx, node, metav1.UpdateOptions{})
+					_, err := clientset.CoreV1().Nodes().Update(ctx, node, metav1.UpdateOptions{})
 					if err != nil {
 						klog.V(4).Infof("Error when updating node %s: %v", node.Name, err.Error())
 						return err
 					}
-					c.targetCoreClient.CoreV1().Pods("fptcloud-gpu-operator").Delete(ctx, p.Name, metav1.DeleteOptions{})
+					clientset.CoreV1().Pods("fptcloud-gpu-operator").Delete(ctx, p.Name, metav1.DeleteOptions{})
 				}
 
 			}
