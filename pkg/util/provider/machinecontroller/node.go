@@ -24,6 +24,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/xuanson2406/machine-controller-manager/pkg/util/provider/machineutils"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 
@@ -59,7 +60,11 @@ func (c *controller) nodeDelete(obj interface{}) {
 // Not being used at the moment, saving it for a future use case.
 func (c *controller) reconcileClusterNodeKey(key string) error {
 	ctx := context.Background()
-	node, err := c.nodeLister.Get(key)
+	_, name, err := cache.SplitMetaNamespaceKey(key)
+	if err != nil {
+		return err
+	}
+	node, err := c.nodeLister.Get(name)
 	if apierrors.IsNotFound(err) {
 		return nil
 	}
@@ -71,11 +76,11 @@ func (c *controller) reconcileClusterNodeKey(key string) error {
 	err = c.reconcileClusterNode(ctx, node)
 	if err != nil {
 		// Re-enqueue after a 30s window
-		c.enqueueNodeAfter(node, 30*time.Second)
+		c.enqueueNodeAfter(node, time.Duration(machineutils.ShortRetry))
 	} else {
 		// Re-enqueue periodically to avoid missing of events
 		// TODO: Get ride of this logic
-		c.enqueueNodeAfter(node, 10*time.Minute)
+		c.enqueueNodeAfter(node, time.Duration(machineutils.LongRetry))
 	}
 	return nil
 }
@@ -116,6 +121,7 @@ func (c *controller) reconcileClusterNode(ctx context.Context, node *v1.Node) er
 				log, err := podLog.Stream(ctx)
 				if err != nil {
 					klog.Warning(err)
+					return err
 				}
 				defer log.Close()
 				buf := new(bytes.Buffer)
