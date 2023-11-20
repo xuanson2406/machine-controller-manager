@@ -333,18 +333,18 @@ func NewController(
 	})
 
 	//  Node Controller Informers - Don't remove this, saved for future use case.
-	nodeInformer.Informer().AddEventHandler(
-		cache.FilteringResourceEventHandler{
-			FilterFunc: func(obj interface{}) bool {
-				//node := obj.(*apicorev1.Node)
-				return true //metav1.HasAnnotation(node.ObjectMeta, ClassAnnotation)
-			},
-			Handler: cache.ResourceEventHandlerFuncs{
-				AddFunc:    controller.nodeAdd,
-				UpdateFunc: controller.nodeUpdate,
-				DeleteFunc: controller.nodeDelete,
-			},
-		})
+	// nodeInformer.Informer().AddEventHandler(
+	// 	cache.FilteringResourceEventHandler{
+	// 		FilterFunc: func(obj interface{}) bool {
+	// 			//node := obj.(*apicorev1.Node)
+	// 			return true //metav1.HasAnnotation(node.ObjectMeta, ClassAnnotation)
+	// 		},
+	// 		Handler: cache.ResourceEventHandlerFuncs{
+	// 			AddFunc:    controller.nodeAdd,
+	// 			UpdateFunc: controller.nodeUpdate,
+	// 			DeleteFunc: controller.nodeDelete,
+	// 		},
+	// 	})
 
 	// Machine Controller Informers
 	nodeInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
