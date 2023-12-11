@@ -972,19 +972,22 @@ func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 		if strings.Contains(i.Name, machine.Name) {
 			VAPP, _ := vdc.GetVAppByName(i.Name, false)
 			vm, _ := VAPP.GetVMById(VAPP.VApp.Children.VM[0].ID, false)
-			task, err := vm.PowerOff()
-			if err != nil {
-				if strings.Contains(err.Error(), "API Error") {
-					time.Sleep(3 * time.Second)
-				} else {
-					return fmt.Errorf("unable to power off vm [%v]", err)
-				}
-			}
-			if task.Task != nil {
-				err = task.WaitTaskCompletion()
+			for {
+				unDeployTask, err := vm.Undeploy()
 				if err != nil {
-					return fmt.Errorf("unable to wait for power off vm completion: [%v]", err)
+					if strings.Contains(err.Error(), "API Error") {
+						time.Sleep(3 * time.Second)
+						continue
+					} else {
+						return fmt.Errorf("unable to power of vm %s: [%v]", machine.Name, err)
+					}
 				}
+				err = unDeployTask.WaitTaskCompletion()
+				if err != nil {
+					return fmt.Errorf("unable to wait for power of vm %s completion: [%v]", machine.Name, err)
+				}
+				time.Sleep(2 * time.Second)
+				break
 			}
 			klog.V(4).Infof("VM %s is power off - try to restart VM", machine.Name)
 			for {
