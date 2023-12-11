@@ -972,51 +972,49 @@ func (c *controller) RebootVM(machine *v1alpha1.Machine) error {
 		if strings.Contains(i.Name, machine.Name) {
 			VAPP, _ := vdc.GetVAppByName(i.Name, false)
 			vm, _ := VAPP.GetVMById(VAPP.VApp.Children.VM[0].ID, false)
-			if vm.VM.Status != 4 {
-				task, err := vm.PowerOff()
-				if err != nil {
-					if strings.Contains(err.Error(), "API Error") {
-						time.Sleep(3 * time.Second)
-					} else {
-						return fmt.Errorf("unable to power off vm [%v]", err)
-					}
-				}
-				if task.Task != nil {
-					err = task.WaitTaskCompletion()
-					if err != nil {
-						return fmt.Errorf("unable to wait for power off vm completion: [%v]", err)
-					}
-				}
-				klog.V(4).Infof("VM %s is power off - try to restart VM", machine.Name)
-				for {
-					err = vm.PowerOnAndForceCustomization()
-					if err != nil {
-						if strings.Contains(err.Error(), "API Error") {
-							time.Sleep(3 * time.Second)
-							continue
-						} else {
-							return fmt.Errorf("unable to power on vm %s with recustomizing option: [%v]", machine.Name, err)
-						}
-					}
-					klog.V(4).Infof("VM %s is power on - wait to Machine ready", machine.Name)
-					break
-				}
-				break
-			}
-			klog.V(4).Infof("VM %s is power on - try to reboot VM - wait to Machine ready", machine.Name)
-			task, err := VAPP.Reboot()
+			task, err := vm.PowerOff()
 			if err != nil {
 				if strings.Contains(err.Error(), "API Error") {
 					time.Sleep(3 * time.Second)
 				} else {
-					return fmt.Errorf("unable to reboot vm [%v]", err)
+					return fmt.Errorf("unable to power off vm [%v]", err)
 				}
 			}
-			err = task.WaitTaskCompletion()
-			if err != nil {
-				return fmt.Errorf("unable to wait for reboot vm completion: [%v]", err)
+			if task.Task != nil {
+				err = task.WaitTaskCompletion()
+				if err != nil {
+					return fmt.Errorf("unable to wait for power off vm completion: [%v]", err)
+				}
+			}
+			klog.V(4).Infof("VM %s is power off - try to restart VM", machine.Name)
+			for {
+				err = vm.PowerOnAndForceCustomization()
+				if err != nil {
+					if strings.Contains(err.Error(), "API Error") {
+						time.Sleep(3 * time.Second)
+						continue
+					} else {
+						return fmt.Errorf("unable to power on vm %s with recustomizing option: [%v]", machine.Name, err)
+					}
+				}
+				klog.V(4).Infof("VM %s is power on - wait to Machine ready", machine.Name)
+				break
 			}
 			break
+			// klog.V(4).Infof("VM %s is power on - try to reboot VM - wait to Machine ready", machine.Name)
+			// task, err := VAPP.Reboot()
+			// if err != nil {
+			// 	if strings.Contains(err.Error(), "API Error") {
+			// 		time.Sleep(3 * time.Second)
+			// 	} else {
+			// 		return fmt.Errorf("unable to reboot vm [%v]", err)
+			// 	}
+			// }
+			// err = task.WaitTaskCompletion()
+			// if err != nil {
+			// 	return fmt.Errorf("unable to wait for reboot vm completion: [%v]", err)
+			// }
+			// break
 		}
 	}
 	return nil
