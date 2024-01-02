@@ -706,16 +706,28 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 				if err != nil {
 					klog.Warning(err)
 				}
-				machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
-				if err != nil {
-					klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machine.Spec.Class.Name, err)
-					return machineutils.ShortRetry, err
+				nodes, err := clientset.CoreV1().Nodes().List(ctx, metav1.ListOptions{LabelSelector: "worker.fptcloud/type=gpu"})
+				needTaint := false
+				if nodes.Items != nil {
+					for _, n := range nodes.Items {
+						needTaint = true
+						for _, t := range n.Spec.Taints {
+							if t.Key == "node.kubernetes.io/unschedulable" && t.Effect == corev1.TaintEffectNoSchedule {
+								needTaint = false
+							}
+						}
+					}
 				}
-				providerSpec, err := v1alpha1.DecodeProviderSpecFromMachineClass(machineClass)
-				if err != nil {
-					klog.Warningf("Error to decode providerSpec from machineclass %s: %v", machineClass.Name, err)
-				}
-				if providerSpec.VGPU == "gpu" && namespace.Name == "fptcloud-gpu-operator" {
+				// machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
+				// if err != nil {
+				// 	klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machine.Spec.Class.Name, err)
+				// 	return machineutils.ShortRetry, err
+				// }
+				// providerSpec, err := v1alpha1.DecodeProviderSpecFromMachineClass(machineClass)
+				// if err != nil {
+				// 	klog.Warningf("Error to decode providerSpec from machineclass %s: %v", machineClass.Name, err)
+				// }
+				if namespace.Name == "fptcloud-gpu-operator" && needTaint {
 					klog.V(4).Infof("GPU is installed in this cluster!")
 					node, err := clientset.CoreV1().Nodes().Get(ctx, clone.Name, metav1.GetOptions{})
 					if err != nil {
@@ -732,7 +744,7 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 					}
 					klog.V(4).Infof("node %s have taint with key nvidia.com/gpu", clone.Name)
 					i := 0
-					for ; i < 10; i++ {
+					for ; i < 15; i++ {
 						podList, err := clientset.CoreV1().Pods("fptcloud-gpu-operator").List(ctx, metav1.ListOptions{})
 						if err != nil {
 							klog.Warning(err)
@@ -785,7 +797,7 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 						time.Sleep(1 * time.Minute)
 					}
 
-					if i == 10 {
+					if i == 15 {
 						klog.Warningf("nvidia-operator-validator install toolkit failed in node [%s]! - delete this machine [%d]", clone.Name, i)
 						description = fmt.Sprintf(
 							"Machine %s failed to install gpu validator", clone.Name)
