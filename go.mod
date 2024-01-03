@@ -15,7 +15,7 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-openapi/spec v0.19.5
 	github.com/google/uuid v1.1.2
-	github.com/gophercloud/gophercloud v0.7.0
+	github.com/gophercloud/gophercloud v0.19.0
 	github.com/gophercloud/utils v0.0.0-20200204043447-9864b6f1f12f
 	github.com/onsi/ginkgo v1.16.2
 	github.com/onsi/gomega v1.11.0
