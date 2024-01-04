@@ -47,10 +47,18 @@ func (c *controller) RebootInstanceOPS(machine *v1alpha1.Machine) error {
 		return err
 	}
 	server, err := servers.ExtractServers(pages)
-	if server == nil || err != nil {
-		return fmt.Errorf("Unable to get server [%s] in tenant [%s] - region [%s]: [%v]", machine.Name, credential["tenantName"], credential["region"])
+	if server == nil {
+		return nil
 	}
-	// if server[0].Status
+	if err != nil {
+		return fmt.Errorf("Unable to get server [%s] in tenant [%s] - region [%s]: [%v]", machine.Name, credential["tenantName"], credential["region"], err.Error())
+	}
+	RebootOpt := &servers.RebootOpts{Type: servers.PowerCycle}
+	r := servers.Reboot(client.serviceClient, server[0].ID, RebootOpt)
+	if r.Err != nil {
+		return fmt.Errorf("Unable to hard reboot the server [%s]: [%v]", machine.Name, r.Err)
+	}
+	return nil
 }
 func GetClientOPSForController(credential map[string]string) (*novaV2, error) {
 	// if one accidentially copies a newline character into the token, remove it!

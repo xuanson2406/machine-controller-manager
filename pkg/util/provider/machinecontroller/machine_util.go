@@ -923,7 +923,11 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 				Reboot := metav1.Now().Add(-timeOutReboot).Sub(machine.Status.CurrentStatus.LastUpdateTime.Time)
 				if machine.Status.CurrentStatus.Phase == v1alpha1.MachineUnknown && Reboot > 0 {
 					klog.V(4).Infof("Machine %s is not healthy --> rebooting machine!", machine.Name)
-					err := c.RebootVM(clone)
+					if strings.Contains(machine.Spec.ProviderID, "fptcloud") {
+						err = c.RebootInstanceVMW(clone)
+					} else {
+						err = c.RebootInstanceOPS(clone)
+					}
 					if err != nil {
 						klog.V(4).Infof("Machine %s rebooted failed - will retry: [%v]", machine.Name, err.Error())
 						c.enqueueMachineAfter(machine, sleepTime)
