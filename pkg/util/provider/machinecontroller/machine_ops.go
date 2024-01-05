@@ -9,6 +9,7 @@ import (
 
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
+	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/startstop"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
 	"github.com/gophercloud/utils/client"
 	"github.com/gophercloud/utils/openstack/clientconfig"
@@ -54,6 +55,15 @@ func (c *controller) RebootInstanceOPS(machine *v1alpha1.Machine) error {
 	}
 	if err != nil {
 		return fmt.Errorf("Unable to get server [%s] in tenant [%s] - region [%s]: [%v]", machine.Name, credential["tenantName"], credential["region"], err.Error())
+	}
+	if server[0].Status == "SHUTOFF" {
+		klog.V(3).Infof("Server [%s] in state [%s] - Starting Server", server[0].Status)
+		result := startstop.Start(client.serviceClient, server[0].ID)
+		if result.Err != nil {
+			return fmt.Errorf("Unable to start the server [%s]: [%v]", machine.Name, result.Err)
+		} else {
+			return nil
+		}
 	}
 	RebootOpt := &servers.RebootOpts{Type: servers.OSReboot}
 	timeToHard := 5 * time.Minute
