@@ -600,9 +600,9 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 	if node != nil {
 		if node.Annotations[nodeAutoRepairAnnotation] == "false" {
 			enableNodeAutoRepair = false
-			klog.V(4).Infof("machine %s is disable node-auto-repair !", node.Name)
+			klog.V(3).Infof("machine %s is disable node-auto-repair !", node.Name)
 		} else {
-			klog.V(4).Infof("machine %s is enable node-auto-repair !", node.Name)
+			klog.V(3).Infof("machine %s is enable node-auto-repair !", node.Name)
 		}
 	}
 	if err != nil {
@@ -869,7 +869,7 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 		} else {
 			timeOutDuration = c.getEffectiveHealthTimeout(machine).Duration
 		}
-		klog.V(4).Infof("machine is %s, timeout of machine is: %v", machine.Status.CurrentStatus.Phase, timeOutDuration)
+		klog.V(3).Infof("machine is %s, timeout of machine is: %v", machine.Status.CurrentStatus.Phase, timeOutDuration)
 		// Timeout value obtained by subtracting last operation with expected time out period
 		timeOut := metav1.Now().Add(-timeOutDuration).Sub(machine.Status.CurrentStatus.LastUpdateTime.Time)
 		if timeOut > 0 {
@@ -922,14 +922,14 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 				timeOutReboot := 3 * time.Minute
 				Reboot := metav1.Now().Add(-timeOutReboot).Sub(machine.Status.CurrentStatus.LastUpdateTime.Time)
 				if machine.Status.CurrentStatus.Phase == v1alpha1.MachineUnknown && Reboot > 0 {
-					klog.V(4).Infof("Machine %s is not healthy --> rebooting machine!", machine.Name)
+					klog.V(3).Infof("Machine %s is not healthy --> rebooting machine!", machine.Name)
 					if strings.Contains(machine.Spec.ProviderID, "fptcloud") {
 						err = c.RebootInstanceVMW(clone)
 					} else {
 						err = c.RebootInstanceOPS(clone)
 					}
 					if err != nil {
-						klog.V(4).Infof("Machine %s rebooted failed - will retry: [%v]", machine.Name, err.Error())
+						klog.V(3).Infof("Machine %s rebooted failed - will retry: [%v]", machine.Name, err.Error())
 						c.enqueueMachineAfter(machine, sleepTime)
 					}
 					time.Sleep(3 * time.Minute)

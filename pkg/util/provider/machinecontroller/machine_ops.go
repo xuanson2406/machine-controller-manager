@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
@@ -12,6 +13,7 @@ import (
 	"github.com/gophercloud/utils/client"
 	"github.com/gophercloud/utils/openstack/clientconfig"
 	"github.com/xuanson2406/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 )
 
@@ -53,10 +55,17 @@ func (c *controller) RebootInstanceOPS(machine *v1alpha1.Machine) error {
 	if err != nil {
 		return fmt.Errorf("Unable to get server [%s] in tenant [%s] - region [%s]: [%v]", machine.Name, credential["tenantName"], credential["region"], err.Error())
 	}
-	RebootOpt := &servers.RebootOpts{Type: servers.PowerCycle}
+	RebootOpt := &servers.RebootOpts{Type: servers.OSReboot}
+	timeToHard := 5 * time.Minute
+	Reboot := metav1.Now().Add(-timeToHard).Sub(machine.Status.CurrentStatus.LastUpdateTime.Time)
+	if Reboot > 0 {
+		klog.V(3).Infof("Machine %s need to hard reboot after 6 minute UnKnown", machine.Name)
+		RebootOpt = &servers.RebootOpts{Type: servers.PowerCycle}
+		time.Sleep(1 * time.Minute)
+	}
 	r := servers.Reboot(client.serviceClient, server[0].ID, RebootOpt)
 	if r.Err != nil {
-		return fmt.Errorf("Unable to hard reboot the server [%s]: [%v]", machine.Name, r.Err)
+		return fmt.Errorf("Unable to reboot the server [%s]: [%v]", machine.Name, r.Err)
 	}
 	return nil
 }
