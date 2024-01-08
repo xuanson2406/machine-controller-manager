@@ -935,8 +935,8 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 						c.enqueueMachineAfter(machine, sleepTime)
 					}
 					// time.Sleep(3 * time.Minute)
-					c.enqueueMachineAfter(machine, sleepTime)
-					// return machineutils.RetryPeriod(sleepTime), nil
+					// c.enqueueMachineAfter(machine, sleepTime)
+					return machineutils.RetryPeriod(sleepTime), nil
 				}
 			}
 			// If timeout has not occurred, re-enqueue the machine
