@@ -925,15 +925,18 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 					klog.V(3).Infof("Machine %s is not healthy --> rebooting machine!", machine.Name)
 					if strings.Contains(machine.Spec.ProviderID, "fptcloud") {
 						err = c.RebootInstanceVMW(clone)
+						sleepTime = 4 * time.Minute
 					} else {
 						err = c.RebootInstanceOPS(clone)
+						sleepTime = 5 * time.Minute
 					}
 					if err != nil {
 						klog.V(3).Infof("Machine %s rebooted failed - will retry: [%v]", machine.Name, err.Error())
 						c.enqueueMachineAfter(machine, sleepTime)
 					}
-					time.Sleep(3 * time.Minute)
+					// time.Sleep(3 * time.Minute)
 					c.enqueueMachineAfter(machine, sleepTime)
+					// return machineutils.RetryPeriod(sleepTime), nil
 				}
 			}
 			// If timeout has not occurred, re-enqueue the machine
