@@ -65,6 +65,9 @@ func (c *controller) RebootInstanceOPS(machine *v1alpha1.Machine) error {
 			return nil
 		}
 	}
+	if server[0].Status == "REBOOT" {
+		return nil
+	}
 	RebootOpt := &servers.RebootOpts{Type: servers.OSReboot}
 	timeToHard := 5 * time.Minute
 	Reboot := metav1.Now().Add(-timeToHard).Sub(machine.Status.CurrentStatus.LastUpdateTime.Time)
