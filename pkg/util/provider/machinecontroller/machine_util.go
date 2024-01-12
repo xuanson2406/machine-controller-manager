@@ -708,7 +708,11 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 				needTaint := false
 				if nodes.Items != nil {
 					for _, n := range nodes.Items {
-						needTaint = true
+						if n.Name == clone.Name {
+							needTaint = false
+						} else {
+							needTaint = true
+						}
 						for _, t := range n.Spec.Taints {
 							if t.Key == "node.kubernetes.io/unschedulable" && t.Effect == corev1.TaintEffectNoSchedule {
 								needTaint = false
