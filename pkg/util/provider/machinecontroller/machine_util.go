@@ -704,8 +704,15 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 				if err != nil {
 					klog.Warning(err)
 				}
-				nodes, err := clientset.CoreV1().Nodes().List(ctx, metav1.ListOptions{LabelSelector: "worker.fptcloud/type=gpu"})
 				needTaint := false
+
+				for k, _ := range clone.Spec.NodeTemplateSpec.Labels {
+					if strings.Contains(k, "mig.config") {
+						needTaint = true
+					}
+				}
+				nodes, err := clientset.CoreV1().Nodes().List(ctx, metav1.ListOptions{LabelSelector: "worker.fptcloud/type=gpu"})
+
 				if nodes.Items != nil {
 					for _, n := range nodes.Items {
 						if n.Name == clone.Name {
@@ -720,6 +727,7 @@ func (c *controller) reconcileMachineHealth(ctx context.Context, machine *v1alph
 						}
 					}
 				}
+
 				// machineClass, err := c.machineClassLister.MachineClasses(c.namespace).Get(machine.Spec.Class.Name)
 				// if err != nil {
 				// 	klog.Errorf("MachineClass %s/%s not found. Skipping. %v", c.namespace, machine.Spec.Class.Name, err)
